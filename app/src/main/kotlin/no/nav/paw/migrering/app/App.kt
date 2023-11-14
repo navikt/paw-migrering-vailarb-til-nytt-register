@@ -4,6 +4,7 @@ import ArbeidssokerperiodeHendelseMelding
 import Hendelse
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
 import kotlinx.coroutines.runBlocking
+import no.nav.paw.arbeidssokerregisteret.intern.v1.SituasjonMottat
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.migrering.app.konfigurasjon.KafkaKonfigurasjon
 import org.apache.avro.specific.SpecificRecord
@@ -41,8 +42,8 @@ fun toplogy(
             Hendelse.STOPPET -> melding.toStoppetEvent()
         }
         val key = runBlocking { kafkaKeysClient.getKey(melding.foedselsnummer) }
-        KeyValue(key.id, hendelse)
-    }
+        KeyValue(key.id, hendelse as SpecificRecord)
+    }.repartition()
 
     val besvarelseStrøm: KStream<Long, SpecificRecord> = streamBuilder.stream(
         veilarbBesvarelseTopic,
@@ -53,9 +54,11 @@ fun toplogy(
     ).map { _, arbeidssokerBesvarelseEvent ->
         val key = runBlocking { kafkaKeysClient.getKey(arbeidssokerBesvarelseEvent.foedselsnummer) }
         val hendelse = situasjonMottat(arbeidssokerBesvarelseEvent)
-        KeyValue(key.id, hendelse)
-    }
+        KeyValue(key.id, hendelse as SpecificRecord)
+    }.repartition()
 
-
+    periodeStrøm
+        .merge(besvarelseStrøm)
+        .to(hendelseTopic)
 }
 
