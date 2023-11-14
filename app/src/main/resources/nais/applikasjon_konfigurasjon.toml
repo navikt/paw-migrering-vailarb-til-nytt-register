@@ -1,0 +1,7 @@
+[azureConfig]
+tokenEndpointUrl = "${AZURE_OPENID_CONFIG_TOKEN_ENDPOINT}"
+clientId = "${AZURE_APP_CLIENT_ID}"
+
+[kafkaKeysConfig]
+url = "${KAFKA_KEYS_URL}"
+scope = "${KAFKA_KEYS_SCOPE}"

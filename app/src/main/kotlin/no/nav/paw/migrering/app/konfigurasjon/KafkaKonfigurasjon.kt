@@ -4,17 +4,18 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.confluent.kafka.serializers.KafkaAvroSerializerConfig
 import io.confluent.kafka.serializers.subject.RecordNameStrategy
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+import org.apache.avro.specific.SpecificRecord
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsConfig
+import java.util.*
 
 data class KafkaKonfigurasjon(
     val streamKonfigurasjon: StreamKonfigurasjon,
     val serverKonfigurasjon: KafkaServerKonfigurasjon,
     val schemaRegistryKonfigurasjon: SchemaRegistryKonfigurasjon
 ) {
-
     val properties = mapOf(
         StreamsConfig.APPLICATION_ID_CONFIG to streamKonfigurasjon.applikasjonsId,
         StreamsConfig.BOOTSTRAP_SERVERS_CONFIG to serverKonfigurasjon.kafkaBrokers,
@@ -37,4 +38,20 @@ data class KafkaKonfigurasjon(
             emptyMap()
         }
         )
+
+    fun <T : SpecificRecord> opprettSerde() = SpecificAvroSerde<T>().apply {
+        configure(
+            mapOf(
+                KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG to schemaRegistryKonfigurasjon.url,
+                KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS to "true"
+            ),
+            false
+        )
+    }
+}
+
+fun Map<String, Any?>.toProperties(): Properties {
+    val properties = Properties()
+    properties.putAll(this)
+    return properties
 }

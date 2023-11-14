@@ -3,12 +3,12 @@ package no.nav.paw.migrering.app
 import com.nimbusds.jose.jwk.KeyUse
 import com.nimbusds.jose.jwk.RSAKey
 import no.nav.common.token_client.builder.AzureAdTokenClientBuilder
-import no.nav.paw.migrering.app.konfigurasjon.TokenKonfigurasjon
+import no.nav.paw.migrering.app.konfigurasjon.AzureConfig
 import java.security.KeyPairGenerator
 import java.security.interfaces.RSAPrivateKey
 import java.security.interfaces.RSAPublicKey
 
-class TokenService(config: TokenKonfigurasjon) {
+class TokenService(config: AzureConfig) {
     fun createMachineToMachineToken(scope: String): String {
         return aadMachineToMachineTokenClient.createMachineToMachineToken(scope)
     }

@@ -2,15 +2,14 @@ package no.nav.paw.migrering.app
 
 import ArbeidssokerperiodeHendelseMelding
 import Hendelse
-import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
-import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
-import io.confluent.kafka.serializers.KafkaAvroSerializerConfig
-import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
 import kotlinx.coroutines.runBlocking
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
+import no.nav.paw.migrering.app.konfigurasjon.ApplikasjonKonfigurasjon
 import no.nav.paw.migrering.app.konfigurasjon.KafkaKonfigurasjon
+import no.nav.paw.migrering.app.konfigurasjon.toProperties
 import org.apache.avro.specific.SpecificRecord
 import org.apache.kafka.common.serialization.Serdes
+import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
@@ -19,14 +18,27 @@ import org.apache.kafka.streams.kstream.KStream
 
 fun main() {
     val kafkaKonfigurasjon: KafkaKonfigurasjon = lastKonfigurasjon("kafka_konfigurasjon.toml")
-    val specificAvroSerde = SpecificAvroSerde<SpecificRecord>()
+    val applikasjonKonfigurasjon: ApplikasjonKonfigurasjon = lastKonfigurasjon("applikasjon_konfigurasjon.toml")
 
-    val steamBuilder = StreamsBuilder()
+    val dependencies = createDependencies(applikasjonKonfigurasjon)
+
+    val topology = topology(
+        kafkaKonfigurasjon = kafkaKonfigurasjon,
+        streamBuilder = StreamsBuilder(),
+        veilarbPeriodeTopic = kafkaKonfigurasjon.streamKonfigurasjon.periodeTopic,
+        veilarbBesvarelseTopic = kafkaKonfigurasjon.streamKonfigurasjon.situasjonTopic,
+        hendelseTopic = kafkaKonfigurasjon.streamKonfigurasjon.eventlogTopic,
+        kafkaKeysClient = dependencies.kafkaKeysClient
+    )
+
+    val streams = KafkaStreams(topology, kafkaKonfigurasjon.properties.toProperties())
+    streams.start()
+
+    Runtime.getRuntime().addShutdownHook(Thread(streams::close))
 }
 
 fun topology(
-    registryClientUrl: String,
-    schemaRegistryClient: SchemaRegistryClient,
+    kafkaKonfigurasjon: KafkaKonfigurasjon,
     streamBuilder: StreamsBuilder,
     veilarbPeriodeTopic: String,
     veilarbBesvarelseTopic: String,
@@ -54,24 +66,17 @@ fun topology(
         veilarbBesvarelseTopic,
         Consumed.with(
             Serdes.String(),
-            SpecificAvroSerde<ArbeidssokerBesvarelseEvent>(schemaRegistryClient).apply {
-                configure(
-                    mutableMapOf<String, Any>(
-                        KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG to registryClientUrl,
-                        KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true
-                    ),
-                    false
-                )
-            }
+            kafkaKonfigurasjon.opprettSerde<ArbeidssokerBesvarelseEvent>()
         )
     ).map { _, arbeidssokerBesvarelseEvent ->
         val key = runBlocking { kafkaKeysClient.getKey(arbeidssokerBesvarelseEvent.foedselsnummer) }
-        val hendelse = situasjonMottat(arbeidssokerBesvarelseEvent)
+        val hendelse = arbeidssokerBesvarelseEvent.tilSituasjonMottat()
         KeyValue(key.id, hendelse as SpecificRecord)
     }.repartition()
 
     periodeStrøm
         .merge(besvarelseStrøm)
         .to(hendelseTopic)
+
     return streamBuilder.build()
 }

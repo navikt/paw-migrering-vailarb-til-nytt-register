@@ -7,8 +7,7 @@ import com.sksamuel.hoplite.addResourceSource
 @OptIn(ExperimentalHoplite::class)
 inline fun <reified A> lastKonfigurasjon(navn: String): A {
     val fulltNavn = when (System.getenv("NAIS_CLUSTER_NAME")) {
-        "prod-gcp" -> "/nais/$navn"
-        "dev-gcp" -> "/nais/$navn"
+        "prod-gcp", "dev-gcp" -> "/nais/$navn"
         else -> "/local/$navn"
     }
     return ConfigLoaderBuilder

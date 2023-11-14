@@ -22,8 +22,9 @@ import no.nav.paw.besvarelse.UtdanningSvar
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-fun tilSituasjonElement(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent): Element? {
-    return when (arbeidssokerBesvarelseEvent.besvarelse.dinSituasjon.verdi) {
+fun ArbeidssokerBesvarelseEvent.tilSituasjonMottat(): SituasjonMottat = situasjonMottat(this)
+fun tilSituasjonElement(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent): Element? =
+    when (arbeidssokerBesvarelseEvent.besvarelse.dinSituasjon.verdi) {
         DinSituasjonSvar.MISTET_JOBBEN -> Beskrivelse.HAR_BLITT_SAGT_OPP
         DinSituasjonSvar.OPPSIGELSE -> Beskrivelse.HAR_SAGT_OPP
         DinSituasjonSvar.HAR_SAGT_OPP -> Beskrivelse.HAR_SAGT_OPP
@@ -57,9 +58,8 @@ fun tilSituasjonElement(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent
             ).filterValues { it != null }
         )
     }
-}
 
-fun LocalDate.toIso8601() = this.format(DateTimeFormatter.ISO_DATE)
+fun LocalDate.toIso8601(): String = this.format(DateTimeFormatter.ISO_DATE)
 
 fun jaNeiVetIkke(navn: String) =
     when (navn) {

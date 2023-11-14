@@ -18,17 +18,12 @@ data class KafkaKeysRequest(
     val ident: String
 )
 
-val httpClient = HttpClient {
-    install(ContentNegotiation) {
-        jackson()
-    }
-}
-
 interface KafkaKeysClient {
     suspend fun getKey(identitetsnummer: String): KafkaKeysResponse
 }
 
 class StandardKafkaKeysClient(
+    private val httpClient: HttpClient,
     private val kafkaKeysUrl: String,
     private val getAccessToken: () -> String
 ) : KafkaKeysClient {

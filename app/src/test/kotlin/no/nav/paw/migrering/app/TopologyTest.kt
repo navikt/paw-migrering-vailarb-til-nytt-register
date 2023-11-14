@@ -2,10 +2,6 @@ package no.nav.paw.migrering.app
 
 import ArbeidssokerperiodeHendelseMelding
 import Hendelse
-import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry
-import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
-import io.confluent.kafka.serializers.KafkaAvroSerializerConfig
-import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -32,32 +28,33 @@ import no.nav.paw.besvarelse.UtdanningBestattSvar
 import no.nav.paw.besvarelse.UtdanningGodkjent
 import no.nav.paw.besvarelse.UtdanningGodkjentSvar
 import no.nav.paw.besvarelse.UtdanningSvar
+import no.nav.paw.migrering.app.konfigurasjon.KafkaKonfigurasjon
+import no.nav.paw.migrering.app.konfigurasjon.KafkaServerKonfigurasjon
+import no.nav.paw.migrering.app.konfigurasjon.SchemaRegistryKonfigurasjon
+import no.nav.paw.migrering.app.konfigurasjon.StreamKonfigurasjon
+import no.nav.paw.migrering.app.konfigurasjon.toProperties
 import org.apache.avro.specific.SpecificRecord
-import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
-import org.apache.kafka.streams.StreamsConfig
 import org.apache.kafka.streams.TopologyTestDriver
 import java.time.Instant
 import java.time.LocalDate
-import java.util.*
 
 class TopologyTest : StringSpec({
     "vi kan få en start event igjennom" {
         val topology = topology(
-            registryClientUrl = "mock://$SCHEMA_REGISTRY_SCOPE",
-            schemaRegistryClient = MockSchemaRegistry.getClientForScope(SCHEMA_REGISTRY_SCOPE),
+            kafkaKonfigurasjon = kafkaKonfigurasjon,
             streamBuilder = StreamsBuilder(),
             veilarbPeriodeTopic = "veilarb.periode",
             veilarbBesvarelseTopic = "veilarb.besvarelse",
             hendelseTopic = "hendelse",
             kafkaKeysClient = InMemKafkaKeysClient()
         )
-        val testDriver = TopologyTestDriver(topology, kafkaStreamProperties)
+        val testDriver = TopologyTestDriver(topology, kafkaKonfigurasjon.properties.toProperties())
         val eventlogTopic = testDriver.createOutputTopic(
             "hendelse",
             Serdes.Long().deserializer(),
-            opprettSerde<SpecificRecord>().deserializer()
+            kafkaKonfigurasjon.opprettSerde<SpecificRecord>().deserializer()
         )
         val veilarbPeriodeTopic = testDriver.createInputTopic(
             "veilarb.periode",
@@ -67,7 +64,7 @@ class TopologyTest : StringSpec({
         val veilarbBesvarelseTopic = testDriver.createInputTopic(
             "veilarb.besvarelse",
             Serdes.String().serializer(),
-            opprettSerde<ArbeidssokerBesvarelseEvent>().serializer()
+            kafkaKonfigurasjon.opprettSerde<ArbeidssokerBesvarelseEvent>().serializer()
         )
         veilarbPeriodeTopic.pipeInput(
             "brukes ikke",
@@ -167,32 +164,30 @@ class TopologyTest : StringSpec({
     }
 })
 
-fun <T : SpecificRecord> opprettSerde(): Serde<T> {
-    val schemaRegistryClient = MockSchemaRegistry.getClientForScope(SCHEMA_REGISTRY_SCOPE)
-    val serde: Serde<T> = SpecificAvroSerde(schemaRegistryClient)
-    serde.configure(
-        mapOf(
-            KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS to "true",
-            KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG to "mock://$SCHEMA_REGISTRY_SCOPE"
-        ),
-        false
-    )
-    return serde
-}
-
 class InMemKafkaKeysClient : KafkaKeysClient {
     override suspend fun getKey(identitetsnummer: String): KafkaKeysResponse {
         return KafkaKeysResponse(identitetsnummer.hashCode().toLong())
     }
 }
 
-const val SCHEMA_REGISTRY_SCOPE = "juni-registry"
-val kafkaStreamProperties = Properties().apply {
-    this[StreamsConfig.APPLICATION_ID_CONFIG] = "test"
-    this[StreamsConfig.BOOTSTRAP_SERVERS_CONFIG] = "dummy:1234"
-    this[StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG] = Serdes.Long().javaClass
-    this[StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG] = SpecificAvroSerde<SpecificRecord>().javaClass
-    this[KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS] = "true"
-    this[KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG] = "mock://$SCHEMA_REGISTRY_SCOPE"
-    this[KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG] = true
-}
+val kafkaKonfigurasjon = KafkaKonfigurasjon(
+    StreamKonfigurasjon(
+        "tilstandsDatabase",
+        "test",
+        "hendelse",
+        "periode",
+        "situasjon"
+    ),
+    KafkaServerKonfigurasjon(
+        "false",
+        "dummy:1234",
+        null,
+        null,
+        null
+    ),
+    SchemaRegistryKonfigurasjon(
+        "mock://junit-registry",
+        null,
+        null
+    )
+)
