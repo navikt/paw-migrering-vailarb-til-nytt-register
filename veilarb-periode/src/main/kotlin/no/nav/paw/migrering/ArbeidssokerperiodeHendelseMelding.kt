@@ -1,14 +1,14 @@
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Bruker
 import no.nav.paw.arbeidssokerregisteret.intern.v1.BrukerType
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Metadata
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Startet
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Stoppet
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Metadata
 import java.time.Instant
 
 data class ArbeidssokerperiodeHendelseMelding(
     val hendelse: Hendelse,
     val foedselsnummer: String,
-    val tidspunkt: Instant,
+    val tidspunkt: Instant
 ) {
     fun toStartEvent(): Startet = Startet.newBuilder().apply {
         this.identitetsnummer = foedselsnummer
@@ -16,7 +16,7 @@ data class ArbeidssokerperiodeHendelseMelding(
             tidspunkt,
             Bruker(BrukerType.UDEFINERT, foedselsnummer),
             "veilarbregistrering",
-            "overføring",
+            "overføring"
         )
     }.build()
 
@@ -26,12 +26,12 @@ data class ArbeidssokerperiodeHendelseMelding(
             tidspunkt,
             Bruker(BrukerType.UDEFINERT, foedselsnummer),
             "veilarbregistrering",
-            "overføring",
+            "overføring"
         )
     }.build()
 }
 
 enum class Hendelse {
     STARTET,
-    STOPPET,
+    STOPPET
 }

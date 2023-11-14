@@ -23,14 +23,18 @@ data class KafkaKonfigurasjon(
         KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG to schemaRegistryKonfigurasjon.url,
         KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS to schemaRegistryKonfigurasjon.autoRegistrerSchema,
         KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
-        KafkaAvroSerializerConfig.VALUE_SUBJECT_NAME_STRATEGY to RecordNameStrategy::class.java.name,
-    ) + (if (serverKonfigurasjon.autentisering.equals("SSL", true)) {
-        mapOf(
-            CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to "SSL",
-            SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to serverKonfigurasjon.keystorePath,
-            SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to serverKonfigurasjon.credstorePassword,
-            SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to serverKonfigurasjon.truststorePath,
-            SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to serverKonfigurasjon.credstorePassword
+        KafkaAvroSerializerConfig.VALUE_SUBJECT_NAME_STRATEGY to RecordNameStrategy::class.java.name
+    ) + (
+        if (serverKonfigurasjon.autentisering.equals("SSL", true)) {
+            mapOf(
+                CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to "SSL",
+                SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to serverKonfigurasjon.keystorePath,
+                SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to serverKonfigurasjon.credstorePassword,
+                SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to serverKonfigurasjon.truststorePath,
+                SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to serverKonfigurasjon.credstorePassword
+            )
+        } else {
+            emptyMap()
+        }
         )
-    } else emptyMap())
 }

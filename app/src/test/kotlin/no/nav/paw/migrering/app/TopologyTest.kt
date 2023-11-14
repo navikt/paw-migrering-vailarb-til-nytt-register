@@ -1,18 +1,37 @@
 package no.nav.paw.migrering.app
 
 import ArbeidssokerperiodeHendelseMelding
+import Hendelse
 import io.confluent.kafka.schemaregistry.testutil.MockSchemaRegistry
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.confluent.kafka.serializers.KafkaAvroSerializerConfig
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
-import io.kotest.core.spec.style.FreeSpec
+import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.paw.arbeidssokerregisteret.PROSENT
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Beskrivelse
 import no.nav.paw.arbeidssokerregisteret.intern.v1.SituasjonMottat
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Startet
-import no.nav.paw.besvarelse.*
+import no.nav.paw.besvarelse.AndreForhold
+import no.nav.paw.besvarelse.AndreForholdSvar
+import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
+import no.nav.paw.besvarelse.Besvarelse
+import no.nav.paw.besvarelse.DinSituasjon
+import no.nav.paw.besvarelse.DinSituasjonSvar
+import no.nav.paw.besvarelse.DinSituasjonTilleggsData
+import no.nav.paw.besvarelse.EndretAv
+import no.nav.paw.besvarelse.HelseHinder
+import no.nav.paw.besvarelse.HelseHinderSvar
+import no.nav.paw.besvarelse.OpprettetAv
+import no.nav.paw.besvarelse.SisteStilling
+import no.nav.paw.besvarelse.SisteStillingSvar
+import no.nav.paw.besvarelse.Utdanning
+import no.nav.paw.besvarelse.UtdanningBestatt
+import no.nav.paw.besvarelse.UtdanningBestattSvar
+import no.nav.paw.besvarelse.UtdanningGodkjent
+import no.nav.paw.besvarelse.UtdanningGodkjentSvar
+import no.nav.paw.besvarelse.UtdanningSvar
 import org.apache.avro.specific.SpecificRecord
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serdes
@@ -23,7 +42,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.*
 
-class TopologyTest(): FreeSpec({
+class TopologyTest : StringSpec({
     "vi kan få en start event igjennom" {
         val topology = topology(
             registryClientUrl = "mock://$SCHEMA_REGISTRY_SCOPE",
@@ -32,7 +51,7 @@ class TopologyTest(): FreeSpec({
             veilarbPeriodeTopic = "veilarb.periode",
             veilarbBesvarelseTopic = "veilarb.besvarelse",
             hendelseTopic = "hendelse",
-            kafkaKeysClient = InMemKafkaKeysClient(),
+            kafkaKeysClient = InMemKafkaKeysClient()
         )
         val testDriver = TopologyTestDriver(topology, kafkaStreamProperties)
         val eventlogTopic = testDriver.createOutputTopic(
@@ -129,10 +148,10 @@ class TopologyTest(): FreeSpec({
                             null,
                             null
                         )
-                    ),
                     )
                 )
             )
+        )
         eventlogTopic.isEmpty shouldBe false
         val hendelse1 = eventlogTopic.readValue()
         hendelse1.shouldBeInstanceOf<Startet>()
@@ -145,7 +164,6 @@ class TopologyTest(): FreeSpec({
         hendelse2.arbeidsoekersituasjon.beskrivelser.size shouldBe 1
         hendelse2.arbeidsoekersituasjon.beskrivelser.first().beskrivelse shouldBe Beskrivelse.ER_PERMITTERT
         hendelse2.arbeidsoekersituasjon.beskrivelser.first().detaljer?.get(PROSENT) shouldBe "45"
-
     }
 })
 
@@ -162,9 +180,9 @@ fun <T : SpecificRecord> opprettSerde(): Serde<T> {
     return serde
 }
 
-class InMemKafkaKeysClient: KafkaKeysClient {
-    override suspend fun getKey(foedselsnummer: String): KafkaKeysResponse {
-        return KafkaKeysResponse(foedselsnummer.hashCode().toLong())
+class InMemKafkaKeysClient : KafkaKeysClient {
+    override suspend fun getKey(identitetsnummer: String): KafkaKeysResponse {
+        return KafkaKeysResponse(identitetsnummer.hashCode().toLong())
     }
 }
 

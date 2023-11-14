@@ -3,7 +3,18 @@ package no.nav.paw.migrering.app
 import no.nav.paw.arbeidssokerregisteret.GJELDER_FRA_DATO
 import no.nav.paw.arbeidssokerregisteret.GJELDER_TIL_DATO
 import no.nav.paw.arbeidssokerregisteret.PROSENT
-import no.nav.paw.arbeidssokerregisteret.intern.v1.*
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Arbeidserfaring
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Arbeidsoekersituasjon
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Beskrivelse
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Bruker
+import no.nav.paw.arbeidssokerregisteret.intern.v1.BrukerType
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Element
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Helse
+import no.nav.paw.arbeidssokerregisteret.intern.v1.JaNeiVetIkke
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Metadata
+import no.nav.paw.arbeidssokerregisteret.intern.v1.SituasjonMottat
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Utdanning
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Utdanningsnivaa
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.besvarelse.DinSituasjonSvar
 import no.nav.paw.besvarelse.SisteStillingSvar
@@ -88,10 +99,10 @@ fun situasjonMottat(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
             arbeidssokerBesvarelseEvent.registreringsTidspunkt,
             Bruker(
                 BrukerType.SLUTTBRUKER,
-                arbeidssokerBesvarelseEvent.foedselsnummer,
+                arbeidssokerBesvarelseEvent.foedselsnummer
             ),
             "veilarbregistrering",
-            "overføring",
+            "overføring"
         ),
         Utdanning(
             utdanningsnivaa(arbeidssokerBesvarelseEvent),

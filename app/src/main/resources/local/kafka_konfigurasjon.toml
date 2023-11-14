@@ -1,9 +1,9 @@
 [streamKonfigurasjon]
 tilstandsDatabase = "tilstand"
 applikasjonsId = "appId"
-eventlogTopic = "eventlog"
-periodeTopic = "periode"
-situasjonTopic = "besvarelse"
+eventlogTopic = "arbeidssoker-hendelseslogg-beta-v1"
+periodeTopic = "arbeidssokerperioder-overforing-beta-v1"
+situasjonTopic = "arbeidssoker-besvarelse-v2"
 
 [serverKonfigurasjon]
 autentisering = "PLAIN"

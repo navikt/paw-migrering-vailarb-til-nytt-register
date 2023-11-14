@@ -7,7 +7,6 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.confluent.kafka.serializers.KafkaAvroSerializerConfig
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
 import kotlinx.coroutines.runBlocking
-import no.nav.paw.arbeidssokerregisteret.intern.v1.SituasjonMottat
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.migrering.app.konfigurasjon.KafkaKonfigurasjon
 import org.apache.avro.specific.SpecificRecord
@@ -32,16 +31,16 @@ fun topology(
     veilarbPeriodeTopic: String,
     veilarbBesvarelseTopic: String,
     hendelseTopic: String,
-    kafkaKeysClient: KafkaKeysClient,
+    kafkaKeysClient: KafkaKeysClient
 ): Topology {
     val periodeStrøm: KStream<Long, SpecificRecord> = streamBuilder.stream(
         veilarbPeriodeTopic,
         Consumed.with(
             Serdes.String(),
-            ArbeidssoekerEventSerde(),
+            ArbeidssoekerEventSerde()
         ).withTimestampExtractor { record, _ ->
             (record.value() as? ArbeidssokerperiodeHendelseMelding)?.tidspunkt?.toEpochMilli() ?: 0L
-        },
+        }
     ).map { _, melding ->
         val hendelse = when (melding.hendelse) {
             Hendelse.STARTET -> melding.toStartEvent()
@@ -55,11 +54,16 @@ fun topology(
         veilarbBesvarelseTopic,
         Consumed.with(
             Serdes.String(),
-            SpecificAvroSerde<ArbeidssokerBesvarelseEvent>(schemaRegistryClient).apply { configure(mutableMapOf<String, Any>(
-                KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG to registryClientUrl,
-                KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
-            ), false) },
-        ),
+            SpecificAvroSerde<ArbeidssokerBesvarelseEvent>(schemaRegistryClient).apply {
+                configure(
+                    mutableMapOf<String, Any>(
+                        KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG to registryClientUrl,
+                        KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true
+                    ),
+                    false
+                )
+            }
+        )
     ).map { _, arbeidssokerBesvarelseEvent ->
         val key = runBlocking { kafkaKeysClient.getKey(arbeidssokerBesvarelseEvent.foedselsnummer) }
         val hendelse = situasjonMottat(arbeidssokerBesvarelseEvent)
@@ -71,4 +75,3 @@ fun topology(
         .to(hendelseTopic)
     return streamBuilder.build()
 }
-

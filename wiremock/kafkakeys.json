@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/hentEllerOpprett"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "id": 2072234860133
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

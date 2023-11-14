@@ -11,11 +11,11 @@ import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
 
 data class KafkaKeysResponse(
-    val id: Long,
+    val id: Long
 )
 
 data class KafkaKeysRequest(
-    val ident: String,
+    val ident: String
 )
 
 val httpClient = HttpClient {
@@ -30,7 +30,7 @@ interface KafkaKeysClient {
 
 class StandardKafkaKeysClient(
     private val kafkaKeysUrl: String,
-    private val getAccessToken: () -> String,
+    private val getAccessToken: () -> String
 ) : KafkaKeysClient {
     override suspend fun getKey(identitetsnummer: String): KafkaKeysResponse =
         httpClient.post(kafkaKeysUrl) {
