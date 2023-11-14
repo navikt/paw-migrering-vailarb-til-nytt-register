@@ -8,7 +8,9 @@ import no.nav.paw.arbeidssokerregisteret.intern.v1.Bruker
 import no.nav.paw.arbeidssokerregisteret.intern.v1.BrukerType
 import no.nav.paw.arbeidssokerregisteret.intern.v1.SituasjonMottat
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Utdanning
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Utdanningsnivaa
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
+import no.nav.paw.besvarelse.UtdanningSvar
 import no.nav.paw.migrering.app.konfigurasjon.KafkaKonfigurasjon
 import org.apache.avro.specific.SpecificRecord
 import org.apache.kafka.common.serialization.Serdes
@@ -47,15 +49,6 @@ fun toplogy(
         val key = runBlocking { kafkaKeysClient.getKey(melding.foedselsnummer) }
         KeyValue(key.id, hendelse)
     }
-    /**
-     * All-args constructor.
-     * @param identitetsnummer The new value for identitetsnummer
-     * @param metadata The new value for metadata
-     * @param utdanning The new value for utdanning
-     * @param helse The new value for helse
-     * @param arbeidserfaring The new value for arbeidserfaring
-     * @param arbeidsoekersituasjon The new value for arbeidsoekersituasjon
-     */
 
     val besvarelseStrøm: KStream<Long, SpecificRecord> = streamBuilder.stream(
         veilarbBesvarelseTopic,
@@ -77,9 +70,24 @@ fun toplogy(
                 "overføring",
             ),
             Utdanning(
-                arbeidssokerBesvarelseEvent.besvarelse.utdanning
+                when (arbeidssokerBesvarelseEvent.besvarelse.utdanning.verdi) {
+                    UtdanningSvar.INGEN_UTDANNING -> Utdanningsnivaa.INGEN_UTDANNING
+                    UtdanningSvar.GRUNNSKOLE -> Utdanningsnivaa.GRUNNSKOLE
+                    UtdanningSvar.VIDEREGAENDE_GRUNNUTDANNING -> Utdanningsnivaa.VIDEREGAENDE_GRUNNUTDANNING
+                    UtdanningSvar.VIDEREGAENDE_FAGBREV_SVENNEBREV -> Utdanningsnivaa.VIDEREGAENDE_FAGBREV_SVENNEBREV
+                    UtdanningSvar.HOYERE_UTDANNING_1_TIL_4 -> Utdanningsnivaa.HOYERE_UTDANNING_1_TIL_4
+                    UtdanningSvar.HOYERE_UTDANNING_5_ELLER_MER -> Utdanningsnivaa.HOYERE_UTDANNING_5_ELLER_MER
+                    UtdanningSvar.INGEN_SVAR -> Utdanningsnivaa.UDEFINERT
+                    null -> Utdanningsnivaa.UDEFINERT
+                }
+                when (arbeidssokerBesvarelseEvent.besvarelse.utd) {
+                }
             )
         )
         KeyValue(key.id, arbeidssokerBesvarelseEvent)
     }
+}
+
+fun jaNeiVetIkke() {
+    
 }
