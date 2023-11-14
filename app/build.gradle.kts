@@ -52,3 +52,7 @@ ktor {
         archiveFileName.set("fat.jar")
     }
 }
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
