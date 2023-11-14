@@ -1,0 +1,12 @@
+plugins {
+
+}
+
+repositories {
+    mavenCentral()
+}
+
+
+dependencies {
+
+}
