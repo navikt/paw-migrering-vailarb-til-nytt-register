@@ -3,10 +3,13 @@ plugins {
     kotlin("jvm") version "1.9.20" apply false
 }
 
-
 rootProject.name = "paw-migrering-vailarb-til-nytt-register"
-include("app", "hendelser", "veilarb-besvarelse", "veilarb-periode")
-
+include(
+    "app",
+    "hendelser",
+    "veilarb-besvarelse",
+    "veilarb-periode"
+)
 
 dependencyResolutionManagement {
     val githubPassword: String by settings
