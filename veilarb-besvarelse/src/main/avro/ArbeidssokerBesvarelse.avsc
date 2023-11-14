@@ -1,0 +1,724 @@
+{
+  "type": "record",
+  "namespace": "no.nav.paw.besvarelse",
+  "name": "ArbeidssokerBesvarelseEvent",
+  "fields": [
+    {
+      "type": "int",
+      "name": "id"
+    },
+    {
+      "type": "int",
+      "name": "registreringsId"
+    },
+    {
+      "type": "string",
+      "name": "foedselsnummer"
+    },
+    {
+      "type": "string",
+      "name": "aktorId"
+    },
+    {
+      "name": "endretTidspunkt",
+      "type": [
+        "null",
+        {
+          "type": "long",
+          "logicalType": "timestamp-millis"
+        }
+      ],
+      "default": null
+    },
+    {
+      "name": "registreringsTidspunkt",
+      "type": [
+        "null",
+        {
+          "type": "long",
+          "logicalType": "timestamp-millis"
+        }
+      ],
+      "default": null
+    },
+    {
+      "name": "opprettetAv",
+      "type": [
+        "null",
+        {
+          "type": "enum",
+          "name": "OpprettetAv",
+          "symbols": [
+            "BRUKER",
+            "VEILEDER",
+            "SYSTEM"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "endretAv",
+      "type": [
+        "null",
+        {
+          "type": "enum",
+          "name": "EndretAv",
+          "symbols": [
+            "BRUKER",
+            "VEILEDER",
+            "SYSTEM"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "boolean",
+      "name": "endret"
+    },
+    {
+      "name": "besvarelse",
+      "type": [
+        "null",
+        {
+          "type": "record",
+          "name": "Besvarelse",
+          "fields": [
+            {
+              "name": "utdanning",
+              "type": [
+                "null",
+                {
+                  "type": "record",
+                  "name": "Utdanning",
+                  "fields": [
+                    {
+                      "name": "endretTidspunkt",
+                      "type": [
+                        "null",
+                        {
+                          "type": "long",
+                          "logicalType": "timestamp-millis"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "endretAv",
+                      "type": [
+                        "null",
+                        {
+                          "type": "string"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "gjelderFraDato",
+                      "type": [
+                        "null",
+                        {
+                          "name": "date",
+                          "type": "int",
+                          "logicalType": "date"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "gjelderTilDato",
+                      "type": [
+                        "null",
+                        {
+                          "name": "date",
+                          "type": "int",
+                          "logicalType": "date"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "verdi",
+                      "type": [
+                        "null",
+                        {
+                          "type": "enum",
+                          "name": "UtdanningSvar",
+                          "symbols": [
+                            "INGEN_UTDANNING",
+                            "GRUNNSKOLE",
+                            "VIDEREGAENDE_GRUNNUTDANNING",
+                            "VIDEREGAENDE_FAGBREV_SVENNEBREV",
+                            "HOYERE_UTDANNING_1_TIL_4",
+                            "HOYERE_UTDANNING_5_ELLER_MER",
+                            "INGEN_SVAR"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "utdanningBestatt",
+              "type": [
+                "null",
+                {
+                  "type": "record",
+                  "name": "UtdanningBestatt",
+                  "fields": [
+                    {
+                      "name": "endretTidspunkt",
+                      "type": [
+                        "null",
+                        {
+                          "type": "long",
+                          "logicalType": "timestamp-millis"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "endretAv",
+                      "type": [
+                        "null",
+                        {
+                          "type": "string"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "gjelderFraDato",
+                      "type": [
+                        "null",
+                        {
+                          "name": "date",
+                          "type": "int",
+                          "logicalType": "date"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "gjelderTilDato",
+                      "type": [
+                        "null",
+                        {
+                          "name": "date",
+                          "type": "int",
+                          "logicalType": "date"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "verdi",
+                      "type": [
+                        "null",
+                        {
+                          "type": "enum",
+                          "name": "UtdanningBestattSvar",
+                          "symbols": [
+                            "JA",
+                            "NEI",
+                            "INGEN_SVAR"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "utdanningGodkjent",
+              "type": [
+                "null",
+                {
+                  "type": "record",
+                  "name": "UtdanningGodkjent",
+                  "fields": [
+                    {
+                      "name": "endretTidspunkt",
+                      "type": [
+                        "null",
+                        {
+                          "type": "long",
+                          "logicalType": "timestamp-millis"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "endretAv",
+                      "type": [
+                        "null",
+                        {
+                          "type": "string"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "gjelderFraDato",
+                      "type": [
+                        "null",
+                        {
+                          "name": "date",
+                          "type": "int",
+                          "logicalType": "date"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "gjelderTilDato",
+                      "type": [
+                        "null",
+                        {
+                          "name": "date",
+                          "type": "int",
+                          "logicalType": "date"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "verdi",
+                      "type": [
+                        "null",
+                        {
+                          "type": "enum",
+                          "name": "UtdanningGodkjentSvar",
+                          "symbols": [
+                            "JA",
+                            "NEI",
+                            "VET_IKKE",
+                            "INGEN_SVAR"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "helseHinder",
+              "type": [
+                "null",
+                {
+                  "type": "record",
+                  "name": "HelseHinder",
+                  "fields": [
+                    {
+                      "name": "endretTidspunkt",
+                      "type": [
+                        "null",
+                        {
+                          "type": "long",
+                          "logicalType": "timestamp-millis"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "endretAv",
+                      "type": [
+                        "null",
+                        {
+                          "type": "string"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "gjelderFraDato",
+                      "type": [
+                        "null",
+                        {
+                          "name": "date",
+                          "type": "int",
+                          "logicalType": "date"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "gjelderTilDato",
+                      "type": [
+                        "null",
+                        {
+                          "name": "date",
+                          "type": "int",
+                          "logicalType": "date"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "verdi",
+                      "type": [
+                        "null",
+                        {
+                          "type": "enum",
+                          "name": "HelseHinderSvar",
+                          "symbols": [
+                            "JA",
+                            "NEI",
+                            "INGEN_SVAR"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "andreForhold",
+              "type": [
+                "null",
+                {
+                  "type": "record",
+                  "name": "AndreForhold",
+                  "fields": [
+                    {
+                      "name": "endretTidspunkt",
+                      "type": [
+                        "null",
+                        {
+                          "type": "long",
+                          "logicalType": "timestamp-millis"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "endretAv",
+                      "type": [
+                        "null",
+                        {
+                          "type": "string"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "gjelderFraDato",
+                      "type": [
+                        "null",
+                        {
+                          "name": "date",
+                          "type": "int",
+                          "logicalType": "date"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "gjelderTilDato",
+                      "type": [
+                        "null",
+                        {
+                          "name": "date",
+                          "type": "int",
+                          "logicalType": "date"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "verdi",
+                      "type": [
+                        "null",
+                        {
+                          "type": "enum",
+                          "name": "AndreForholdSvar",
+                          "symbols": [
+                            "JA",
+                            "NEI",
+                            "INGEN_SVAR"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "sisteStilling",
+              "type": [
+                "null",
+                {
+                  "type": "record",
+                  "name": "SisteStilling",
+                  "fields": [
+                    {
+                      "name": "endretTidspunkt",
+                      "type": [
+                        "null",
+                        {
+                          "type": "long",
+                          "logicalType": "timestamp-millis"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "endretAv",
+                      "type": [
+                        "null",
+                        {
+                          "type": "string"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "gjelderFraDato",
+                      "type": [
+                        "null",
+                        {
+                          "name": "date",
+                          "type": "int",
+                          "logicalType": "date"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "gjelderTilDato",
+                      "type": [
+                        "null",
+                        {
+                          "name": "date",
+                          "type": "int",
+                          "logicalType": "date"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "verdi",
+                      "type": [
+                        "null",
+                        {
+                          "type": "enum",
+                          "name": "SisteStillingSvar",
+                          "symbols": [
+                            "HAR_HATT_JOBB",
+                            "HAR_IKKE_HATT_JOBB",
+                            "INGEN_SVAR"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "default": null
+            },
+            {
+              "name": "dinSituasjon",
+              "type": [
+                "null",
+                {
+                  "type": "record",
+                  "name": "DinSituasjon",
+                  "fields": [
+                    {
+                      "name": "endretTidspunkt",
+                      "type": [
+                        "null",
+                        {
+                          "type": "long",
+                          "logicalType": "timestamp-millis"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "endretAv",
+                      "type": [
+                        "null",
+                        {
+                          "type": "string"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "gjelderFraDato",
+                      "type": [
+                        "null",
+                        {
+                          "name": "date",
+                          "type": "int",
+                          "logicalType": "date"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "gjelderTilDato",
+                      "type": [
+                        "null",
+                        {
+                          "name": "date",
+                          "type": "int",
+                          "logicalType": "date"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "verdi",
+                      "type": [
+                        "null",
+                        {
+                          "type": "enum",
+                          "name": "DinSituasjonSvar",
+                          "symbols": [
+                            "MISTET_JOBBEN",
+                            "ALDRI_HATT_JOBB",
+                            "HAR_SAGT_OPP",
+                            "VIL_BYTTE_JOBB",
+                            "ER_PERMITTERT",
+                            "USIKKER_JOBBSITUASJON",
+                            "JOBB_OVER_2_AAR",
+                            "VIL_FORTSETTE_I_JOBB",
+                            "AKKURAT_FULLFORT_UTDANNING",
+                            "DELTIDSJOBB_VIL_MER",
+                            "OPPSIGELSE",
+                            "ENDRET_PERMITTERINGSPROSENT",
+                            "TILBAKE_TIL_JOBB",
+                            "NY_JOBB",
+                            "MIDLERTIDIG_JOBB",
+                            "KONKURS",
+                            "SAGT_OPP",
+                            "UAVKLART",
+                            "ANNET"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "tilleggsData",
+                      "type": [
+                        "null",
+                        {
+                          "type": "record",
+                          "name": "DinSituasjonTilleggsData",
+                          "fields": [
+                            {
+                              "name": "forsteArbeidsdagDato",
+                              "type": [
+                                "null",
+                                {
+                                  "name": "date",
+                                  "type": "int",
+                                  "logicalType": "date"
+                                }
+                              ],
+                              "default": null
+                            },
+                            {
+                              "name": "sisteArbeidsdagDato",
+                              "type": [
+                                "null",
+                                {
+                                  "name": "date",
+                                  "type": "int",
+                                  "logicalType": "date"
+                                }
+                              ],
+                              "default": null
+                            },
+                            {
+                              "name": "oppsigelseDato",
+                              "type": [
+                                "null",
+                                {
+                                  "name": "date",
+                                  "type": "int",
+                                  "logicalType": "date"
+                                }
+                              ],
+                              "default": null
+                            },
+                            {
+                              "name": "gjelderFraDato",
+                              "type": [
+                                "null",
+                                {
+                                  "name": "date",
+                                  "type": "int",
+                                  "logicalType": "date"
+                                }
+                              ],
+                              "default": null
+                            },
+                            {
+                              "name": "permitteringsProsent",
+                              "type": [
+                                "null",
+                                {
+                                  "type": "string"
+                                }
+                              ],
+                              "default": null
+                            },
+                            {
+                              "name": "stillingsProsent",
+                              "type": [
+                                "null",
+                                {
+                                  "type": "string"
+                                }
+                              ],
+                              "default": null
+                            },
+                            {
+                              "name": "permitteringForlenget",
+                              "type": [
+                                "null",
+                                {
+                                  "type": "string"
+                                }
+                              ],
+                              "default": null
+                            },
+                            {
+                              "name": "harNyJobb",
+                              "type": [
+                                "null",
+                                {
+                                  "type": "string"
+                                }
+                              ],
+                              "default": null
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "default": null
+            }
+          ]
+        }
+      ],
+      "default": null
+    }
+  ]
+}

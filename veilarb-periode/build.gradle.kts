@@ -1,11 +1,8 @@
+
 plugins {
-
-}
-
-repositories {
-    mavenCentral()
+    kotlin("jvm")
 }
 
 dependencies {
-
+    implementation(project(":hendelser"))
 }

@@ -10,8 +10,8 @@ val schema by configurations.creating {
 }
 
 dependencies {
-    schema("no.nav.paw.arbeidssokerregisteret.api.schema:eksternt-api:23.11.13.59-1")
-    implementation("org.apache.avro:avro:1.11.1")
+    schema("no.nav.paw.arbeidssokerregisteret.internt.schema:interne-eventer:23.11.13.59-1")
+    api("org.apache.avro:avro:1.11.1")
 }
 
 tasks.named("generateAvroProtocol", GenerateAvroProtocolTask::class.java) {
