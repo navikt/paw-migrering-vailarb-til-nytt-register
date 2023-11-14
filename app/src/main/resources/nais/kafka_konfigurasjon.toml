@@ -1,0 +1,19 @@
+[streamKonfigurasjon]
+tilstandsDatabase = "tilstand-beta-v1"
+applikasjonsId = "${KAFKA_STREAMS_APPLICATION_ID}"
+eventlogTopic = "paw.arbeidssoker-hendelseslogg-beta-v1"
+periodeTopic = "paw.arbeidssokerperioder-beta-v1"
+besvarelseTopic = "paw.arbeidssoker-situasjon-beta-v1"
+
+[serverKonfigurasjon]
+autentisering = "SSL"
+kafkaBrokers = "${KAFKA_BROKERS}"
+kafkaSchemaRegistry = "${KAFKA_SCHEMA_REGISTRY}"
+keystorePath = "${KAFKA_KEYSTORE_PATH}"
+credstorePassword = "${KAFKA_CREDSTORE_PASSWORD}"
+truststorePath = "${KAFKA_TRUSTSTORE_PATH}"
+
+[schemaRegistryKonfigurasjon]
+url = "${KAFKA_SCHEMA_REGISTRY}"
+bruker = "${KAFKA_SCHEMA_REGISTRY_USER}"
+passord = "${KAFKA_SCHEMA_REGISTRY_PASSWORD}"
