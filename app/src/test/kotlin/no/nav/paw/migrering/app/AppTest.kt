@@ -37,7 +37,7 @@ fun main() {
     kafkaPeriodeProducer.flush()
 
     val kafkaBesvarelseProducerProperties = kafkaProducerProperties(
-        producerId = "test",
+        producerId = "test5",
         keySerializer = StringSerializer::class,
         valueSerializer = kafkaConfig.opprettSerde<ArbeidssokerBesvarelseEvent>().serializer()::class
     )
