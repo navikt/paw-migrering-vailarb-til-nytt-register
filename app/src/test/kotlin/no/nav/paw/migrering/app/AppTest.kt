@@ -49,7 +49,7 @@ fun main() {
         besvarelseProducer.send(ProducerRecord(
             /* topic = */ kafkaConfig.streamKonfigurasjon.situasjonTopic,
             /* partition = */ null,
-            /* timestamp = */ besvarelse.registreringsTidspunkt.toEpochMilli(),
+            /* timestamp = */ besvarelse.registreringsTidspunkt.epochSecond,
             /* key = */ UUID.randomUUID().toString(),
             /* value = */ besvarelse
         ))
