@@ -1,5 +1,12 @@
 {
-  "hendelse": "STARTET",
-  "foedselsnummer": "12345678910",
-  "tidspunkt": "2023-11-14T17:28:52.963905764Z"
+  "timestamp": 2900040268241,
+  "hendelser": [
+    {
+      "hendelse": "STARTET",
+      "foedselsnummer": "12345678901",
+      "tidspunkt": 1700042054.117717133
+    }
+  ]
 }
+
+

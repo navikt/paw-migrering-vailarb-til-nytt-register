@@ -8,7 +8,7 @@ val logbackVersion = "1.4.5"
 val logstashVersion = "7.3"
 val ktorVersion = pawObservability.versions.ktor
 val navCommonModulesVersion = "2.2023.01.10_13.49-81ddc732df3a"
-val hopliteVersion = "2.7.5"
+val hopliteVersion = "2.8.0.RC3"
 
 dependencies {
     implementation(project(":veilarb-besvarelse"))

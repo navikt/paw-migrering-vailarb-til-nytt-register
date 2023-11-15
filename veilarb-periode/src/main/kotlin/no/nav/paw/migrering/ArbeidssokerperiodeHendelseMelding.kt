@@ -1,9 +1,11 @@
+import com.fasterxml.jackson.annotation.JsonCreator
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Bruker
 import no.nav.paw.arbeidssokerregisteret.intern.v1.BrukerType
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Metadata
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Startet
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Stoppet
 import java.time.Instant
+import java.util.*
 
 data class ArbeidssokerperiodeHendelseMelding(
     val hendelse: Hendelse,
