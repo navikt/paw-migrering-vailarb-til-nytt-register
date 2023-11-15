@@ -1,12 +1,11 @@
-{
-  "timestamp": 2900040268241,
-  "hendelser": [
-    {
+[
+  {
+    "timestamp": 2900040268241,
+    "hendelse": {
       "hendelse": "STARTET",
       "foedselsnummer": "12345678901",
       "tidspunkt": 1700042054.117717133
     }
-  ]
-}
-
+  }
+]
 

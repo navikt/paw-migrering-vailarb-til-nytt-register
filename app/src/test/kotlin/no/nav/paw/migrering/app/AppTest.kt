@@ -1,15 +1,11 @@
 package no.nav.paw.migrering.app
 
-import ArbeidssokerperiodeHendelseMelding
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.paw.migrering.app.konfigurasjon.KafkaKonfigurasjon
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
-import java.time.Instant
 import java.util.*
 
 fun main() {
@@ -23,20 +19,15 @@ fun main() {
 
     val resource = TopologyTest::class.java.getResource("/arbeidssokerHendelseMeldingStartet.json")
     requireNotNull(resource) { "Finner ikke resurs" }
-    val objectMapper = jacksonObjectMapper().registerModule(JavaTimeModule()).registerKotlinModule()
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-    println(objectMapper.writeValueAsString(ArbeidssokerperiodeHendelseMelding(
-        hendelse = Hendelse.STARTET,
-        foedselsnummer = "12345678901",
-        tidspunkt = Instant.now()
-    )))
-    val periodeMeldinger = objectMapper.readValue(resource, TestData::class.java)
+    val objectMapper = jacksonObjectMapper().findAndRegisterModules()
 
-    periodeMeldinger.hendelser.forEach {(timestamp, hendelse) ->
+    val periodeMeldinger: List<TimestampOgHendelse> = objectMapper.readValue(resource)
+
+    periodeMeldinger.forEach { (timestamp, hendelse) ->
         val record = ProducerRecord(
             /* topic = */ kafkaConfig.streamKonfigurasjon.periodeTopic,
             /* partition = */ null,
-            /* timestamp = */ timestamp.toEpochMilli(),
+            /* timestamp = */ timestamp.epochSecond,
             /* key = */ UUID.randomUUID().toString(),
             /* value = */ objectMapper.writeValueAsString(hendelse)
         )
