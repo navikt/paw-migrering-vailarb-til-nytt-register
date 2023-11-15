@@ -8,13 +8,14 @@ val logbackVersion = "1.4.5"
 val logstashVersion = "7.3"
 val ktorVersion = pawObservability.versions.ktor
 val navCommonModulesVersion = "2.2023.01.10_13.49-81ddc732df3a"
+val hopliteVersion = "2.7.5"
 
 dependencies {
     implementation(project(":veilarb-besvarelse"))
     implementation(project(":veilarb-periode"))
     implementation(project(":hendelser"))
-    implementation("com.sksamuel.hoplite:hoplite-core:2.8.0.RC3")
-    implementation("com.sksamuel.hoplite:hoplite-toml:2.8.0.RC3")
+    implementation("com.sksamuel.hoplite:hoplite-core:$hopliteVersion")
+    implementation("com.sksamuel.hoplite:hoplite-toml:$hopliteVersion")
     implementation(pawObservability.bundles.ktorNettyOpentelemetryMicrometerPrometheus)
 
     implementation("no.nav.paw.arbeidssokerregisteret.api.schema:arbeidssoekerregisteret-kotlin:23.11.13.59-1")
@@ -41,6 +42,7 @@ dependencies {
 
     testImplementation("io.kotest:kotest-runner-junit5-jvm:4.6.0")
     testImplementation("org.apache.kafka:kafka-streams-test-utils:3.5.1")
+    testImplementation(kotlin("reflect"))
 }
 
 application {

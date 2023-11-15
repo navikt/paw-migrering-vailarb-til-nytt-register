@@ -165,9 +165,8 @@ class TopologyTest : StringSpec({
 })
 
 class InMemKafkaKeysClient : KafkaKeysClient {
-    override suspend fun getKey(identitetsnummer: String): KafkaKeysResponse {
-        return KafkaKeysResponse(identitetsnummer.hashCode().toLong())
-    }
+    override suspend fun getKey(identitetsnummer: String): KafkaKeysResponse =
+        KafkaKeysResponse(identitetsnummer.hashCode().toLong())
 }
 
 val kafkaKonfigurasjon = KafkaKonfigurasjon(
