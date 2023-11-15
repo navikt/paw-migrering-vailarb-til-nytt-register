@@ -4,7 +4,31 @@
     "hendelse": {
       "hendelse": "STARTET",
       "foedselsnummer": "12345678901",
-      "tidspunkt": 1700042054.117717133
+      "tidspunkt": "2001-05-29T15:21:08+02:00"
+    }
+  },
+  {
+    "timestamp": 2900040268242,
+    "hendelse": {
+      "hendelse": "STARTET",
+      "foedselsnummer": "12345678902",
+      "tidspunkt": "2001-05-29T15:24:08+02:00"
+    }
+  },
+  {
+    "timestamp": 2900040268243,
+    "hendelse": {
+      "hendelse": "STOPPET",
+      "foedselsnummer": "12345678901",
+      "tidspunkt": "2012-05-29T15:21:08+02:00"
+    }
+  },
+  {
+    "timestamp": 2900040268244,
+    "hendelse": {
+      "hendelse": "STOPPET",
+      "foedselsnummer": "12345678902",
+      "tidspunkt": "2004-05-29T15:21:08+02:00"
     }
   }
 ]
