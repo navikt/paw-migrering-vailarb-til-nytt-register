@@ -29,7 +29,7 @@ fun main() {
             /* topic = */ kafkaConfig.streamKonfigurasjon.periodeTopic,
             /* partition = */ null,
             /* timestamp = */ timestamp.epochSecond,
-            /* key = */ UUID.randomUUID().toString(),
+            /* key = */ hendelse.foedselsnummer,
             /* value = */ objectMapper.writeValueAsString(hendelse)
         )
         kafkaPeriodeProducer.send(record)

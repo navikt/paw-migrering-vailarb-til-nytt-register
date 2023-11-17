@@ -1,39 +1,16 @@
 package no.nav.paw.migrering.app
 
-import ArbeidssokerperiodeHendelseMelding
-import Hendelse
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.paw.arbeidssokerregisteret.PROSENT
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Beskrivelse
-import no.nav.paw.arbeidssokerregisteret.intern.v1.SituasjonMottat
+import no.nav.paw.arbeidssokerregisteret.intern.v1.SituasjonMottatt
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Startet
-import no.nav.paw.besvarelse.AndreForhold
-import no.nav.paw.besvarelse.AndreForholdSvar
-import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
-import no.nav.paw.besvarelse.Besvarelse
-import no.nav.paw.besvarelse.DinSituasjon
-import no.nav.paw.besvarelse.DinSituasjonSvar
-import no.nav.paw.besvarelse.DinSituasjonTilleggsData
-import no.nav.paw.besvarelse.EndretAv
-import no.nav.paw.besvarelse.HelseHinder
-import no.nav.paw.besvarelse.HelseHinderSvar
-import no.nav.paw.besvarelse.OpprettetAv
-import no.nav.paw.besvarelse.SisteStilling
-import no.nav.paw.besvarelse.SisteStillingSvar
-import no.nav.paw.besvarelse.Utdanning
-import no.nav.paw.besvarelse.UtdanningBestatt
-import no.nav.paw.besvarelse.UtdanningBestattSvar
-import no.nav.paw.besvarelse.UtdanningGodkjent
-import no.nav.paw.besvarelse.UtdanningGodkjentSvar
-import no.nav.paw.besvarelse.UtdanningSvar
-import no.nav.paw.migrering.app.konfigurasjon.KafkaKonfigurasjon
-import no.nav.paw.migrering.app.konfigurasjon.KafkaServerKonfigurasjon
-import no.nav.paw.migrering.app.konfigurasjon.SchemaRegistryKonfigurasjon
-import no.nav.paw.migrering.app.konfigurasjon.StreamKonfigurasjon
-import no.nav.paw.migrering.app.konfigurasjon.toProperties
-import org.apache.avro.specific.SpecificRecord
+import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.ArbeidsoekersituasjonBeskrivelse
+import no.nav.paw.besvarelse.*
+import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
+import no.nav.paw.migrering.Hendelse
+import no.nav.paw.migrering.app.konfigurasjon.*
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.TopologyTestDriver
@@ -54,7 +31,7 @@ class TopologyTest : StringSpec({
         val eventlogTopic = testDriver.createOutputTopic(
             "hendelse",
             Serdes.Long().deserializer(),
-            kafkaKonfigurasjon.opprettSerde<SpecificRecord>().deserializer()
+            HendelseSerde().deserializer()
         )
         val veilarbPeriodeTopic = testDriver.createInputTopic(
             "veilarb.periode",
@@ -156,11 +133,11 @@ class TopologyTest : StringSpec({
 
         eventlogTopic.isEmpty shouldBe false
         val hendelse2 = eventlogTopic.readValue()
-        hendelse2.shouldBeInstanceOf<SituasjonMottat>()
+        hendelse2.shouldBeInstanceOf<SituasjonMottatt>()
         hendelse2.identitetsnummer shouldBe "12345678909"
-        hendelse2.arbeidsoekersituasjon.beskrivelser.size shouldBe 1
-        hendelse2.arbeidsoekersituasjon.beskrivelser.first().beskrivelse shouldBe Beskrivelse.ER_PERMITTERT
-        hendelse2.arbeidsoekersituasjon.beskrivelser.first().detaljer?.get(PROSENT) shouldBe "45"
+        hendelse2.situasjon.arbeidsoekersituasjon.beskrivelser.size shouldBe 1
+        hendelse2.situasjon.arbeidsoekersituasjon.beskrivelser.first().beskrivelse shouldBe ArbeidsoekersituasjonBeskrivelse.ER_PERMITTERT
+        hendelse2.situasjon.arbeidsoekersituasjon.beskrivelser.first().detaljer[PROSENT] shouldBe "45"
     }
 })
 

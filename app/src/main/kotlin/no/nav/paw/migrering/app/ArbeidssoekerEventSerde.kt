@@ -1,6 +1,6 @@
 package no.nav.paw.migrering.app
 
-import ArbeidssokerperiodeHendelseMelding
+import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule

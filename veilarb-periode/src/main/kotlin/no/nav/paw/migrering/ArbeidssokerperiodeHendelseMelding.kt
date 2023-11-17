@@ -1,9 +1,8 @@
-import com.fasterxml.jackson.annotation.JsonCreator
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Bruker
-import no.nav.paw.arbeidssokerregisteret.intern.v1.BrukerType
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Metadata
+package no.nav.paw.migrering
+
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Startet
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Stoppet
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Avsluttet
+import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.*
 import java.time.Instant
 import java.util.*
 
@@ -12,25 +11,27 @@ data class ArbeidssokerperiodeHendelseMelding(
     val foedselsnummer: String,
     val tidspunkt: Instant
 ) {
-    fun toStartEvent(): Startet = Startet.newBuilder().apply {
-        this.identitetsnummer = foedselsnummer
-        this.metadata = Metadata(
-            tidspunkt,
-            Bruker(BrukerType.UDEFINERT, foedselsnummer),
-            "veilarbregistrering",
-            "overføring"
-        )
-    }.build()
+    fun toStartEvent(): Startet = Startet (
+        identitetsnummer = foedselsnummer,
+        metadata = Metadata(
+            tidspunkt = tidspunkt,
+            utfoertAv = Bruker(BrukerType.UDEFINERT, foedselsnummer),
+            kilde = "veilarbregistrering",
+            aarsak = "overføring"
+        ),
+        hendelseId = UUID.randomUUID()
+    )
 
-    fun toStoppetEvent(): Stoppet = Stoppet.newBuilder().apply {
-        this.identitetsnummer = foedselsnummer
-        this.metadata = Metadata(
-            tidspunkt,
-            Bruker(BrukerType.UDEFINERT, foedselsnummer),
-            "veilarbregistrering",
-            "overføring"
-        )
-    }.build()
+    fun toAvsluttetEvent(): Avsluttet = Avsluttet(
+        identitetsnummer = foedselsnummer,
+        metadata = Metadata(
+            tidspunkt = tidspunkt,
+            utfoertAv = Bruker(BrukerType.UDEFINERT, foedselsnummer),
+            kilde = "veilarbregistrering",
+            aarsak = "overføring"
+        ),
+        hendelseId = UUID.randomUUID()
+    )
 }
 
 enum class Hendelse {

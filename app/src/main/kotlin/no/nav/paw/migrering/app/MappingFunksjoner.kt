@@ -3,59 +3,51 @@ package no.nav.paw.migrering.app
 import no.nav.paw.arbeidssokerregisteret.GJELDER_FRA_DATO
 import no.nav.paw.arbeidssokerregisteret.GJELDER_TIL_DATO
 import no.nav.paw.arbeidssokerregisteret.PROSENT
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Arbeidserfaring
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Arbeidsoekersituasjon
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Beskrivelse
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Bruker
-import no.nav.paw.arbeidssokerregisteret.intern.v1.BrukerType
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Element
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Helse
-import no.nav.paw.arbeidssokerregisteret.intern.v1.JaNeiVetIkke
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Metadata
-import no.nav.paw.arbeidssokerregisteret.intern.v1.SituasjonMottat
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Utdanning
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Utdanningsnivaa
+import no.nav.paw.arbeidssokerregisteret.intern.v1.SituasjonMottatt
+import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.*
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.besvarelse.DinSituasjonSvar
 import no.nav.paw.besvarelse.SisteStillingSvar
 import no.nav.paw.besvarelse.UtdanningSvar
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.*
+import kotlin.Metadata
 
-fun ArbeidssokerBesvarelseEvent.tilSituasjonMottat(): SituasjonMottat = situasjonMottat(this)
-fun tilSituasjonElement(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent): Element? =
+fun ArbeidssokerBesvarelseEvent.tilSituasjonMottat(): SituasjonMottatt = situasjonMottat(this)
+fun tilSituasjonElement(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent): ArbeidssoekersitusjonMedDetaljer? =
     when (arbeidssokerBesvarelseEvent.besvarelse.dinSituasjon.verdi) {
-        DinSituasjonSvar.MISTET_JOBBEN -> Beskrivelse.HAR_BLITT_SAGT_OPP
-        DinSituasjonSvar.OPPSIGELSE -> Beskrivelse.HAR_SAGT_OPP
-        DinSituasjonSvar.HAR_SAGT_OPP -> Beskrivelse.HAR_SAGT_OPP
-        DinSituasjonSvar.SAGT_OPP -> Beskrivelse.HAR_BLITT_SAGT_OPP
-        DinSituasjonSvar.ALDRI_HATT_JOBB -> Beskrivelse.ALDRI_HATT_JOBB
-        DinSituasjonSvar.VIL_BYTTE_JOBB -> Beskrivelse.VIL_BYTTE_JOBB
-        DinSituasjonSvar.ER_PERMITTERT -> Beskrivelse.ER_PERMITTERT
-        DinSituasjonSvar.USIKKER_JOBBSITUASJON -> Beskrivelse.USIKKER_JOBBSITUASJON
-        DinSituasjonSvar.JOBB_OVER_2_AAR -> Beskrivelse.IKKE_VAERT_I_JOBB_SISTE_2_AAR
-        DinSituasjonSvar.VIL_FORTSETTE_I_JOBB -> Beskrivelse.ANNET
-        DinSituasjonSvar.AKKURAT_FULLFORT_UTDANNING -> Beskrivelse.AKKURAT_FULLFORT_UTDANNING
-        DinSituasjonSvar.DELTIDSJOBB_VIL_MER -> Beskrivelse.DELTIDSJOBB_VIL_MER
-        DinSituasjonSvar.ENDRET_PERMITTERINGSPROSENT -> Beskrivelse.ER_PERMITTERT
+        DinSituasjonSvar.MISTET_JOBBEN -> ArbeidsoekersituasjonBeskrivelse.HAR_BLITT_SAGT_OPP
+        DinSituasjonSvar.OPPSIGELSE -> ArbeidsoekersituasjonBeskrivelse.HAR_SAGT_OPP
+        DinSituasjonSvar.HAR_SAGT_OPP -> ArbeidsoekersituasjonBeskrivelse.HAR_SAGT_OPP
+        DinSituasjonSvar.SAGT_OPP -> ArbeidsoekersituasjonBeskrivelse.HAR_BLITT_SAGT_OPP
+        DinSituasjonSvar.ALDRI_HATT_JOBB -> ArbeidsoekersituasjonBeskrivelse.ALDRI_HATT_JOBB
+        DinSituasjonSvar.VIL_BYTTE_JOBB -> ArbeidsoekersituasjonBeskrivelse.VIL_BYTTE_JOBB
+        DinSituasjonSvar.ER_PERMITTERT -> ArbeidsoekersituasjonBeskrivelse.ER_PERMITTERT
+        DinSituasjonSvar.USIKKER_JOBBSITUASJON -> ArbeidsoekersituasjonBeskrivelse.USIKKER_JOBBSITUASJON
+        DinSituasjonSvar.JOBB_OVER_2_AAR -> ArbeidsoekersituasjonBeskrivelse.IKKE_VAERT_I_JOBB_SISTE_2_AAR
+        DinSituasjonSvar.VIL_FORTSETTE_I_JOBB -> ArbeidsoekersituasjonBeskrivelse.ANNET
+        DinSituasjonSvar.AKKURAT_FULLFORT_UTDANNING -> ArbeidsoekersituasjonBeskrivelse.AKKURAT_FULLFORT_UTDANNING
+        DinSituasjonSvar.DELTIDSJOBB_VIL_MER -> ArbeidsoekersituasjonBeskrivelse.DELTIDSJOBB_VIL_MER
+        DinSituasjonSvar.ENDRET_PERMITTERINGSPROSENT -> ArbeidsoekersituasjonBeskrivelse.ER_PERMITTERT
         DinSituasjonSvar.TILBAKE_TIL_JOBB -> null
-        DinSituasjonSvar.NY_JOBB -> Beskrivelse.NY_JOBB
-        DinSituasjonSvar.MIDLERTIDIG_JOBB -> Beskrivelse.MIDLERTIDIG_JOBB
-        DinSituasjonSvar.KONKURS -> Beskrivelse.KONKURS
-        DinSituasjonSvar.UAVKLART -> Beskrivelse.USIKKER_JOBBSITUASJON
-        DinSituasjonSvar.ANNET -> Beskrivelse.ANNET
+        DinSituasjonSvar.NY_JOBB -> ArbeidsoekersituasjonBeskrivelse.NY_JOBB
+        DinSituasjonSvar.MIDLERTIDIG_JOBB -> ArbeidsoekersituasjonBeskrivelse.MIDLERTIDIG_JOBB
+        DinSituasjonSvar.KONKURS -> ArbeidsoekersituasjonBeskrivelse.KONKURS
+        DinSituasjonSvar.UAVKLART -> ArbeidsoekersituasjonBeskrivelse.USIKKER_JOBBSITUASJON
+        DinSituasjonSvar.ANNET -> ArbeidsoekersituasjonBeskrivelse.ANNET
         null -> null
     }?.let { beskrivelse ->
-        Element(
-            beskrivelse,
-            mapOf(
+        ArbeidssoekersitusjonMedDetaljer(
+            beskrivelse = beskrivelse,
+            detaljer = mapOf(
                 GJELDER_FRA_DATO to arbeidssokerBesvarelseEvent.besvarelse.dinSituasjon.gjelderFraDato.toIso8601(),
                 GJELDER_TIL_DATO to arbeidssokerBesvarelseEvent.besvarelse.dinSituasjon.gjelderTilDato.toIso8601(),
                 PROSENT to listOfNotNull(
                     arbeidssokerBesvarelseEvent.besvarelse.dinSituasjon.tilleggsData.permitteringsProsent,
                     arbeidssokerBesvarelseEvent.besvarelse.dinSituasjon.tilleggsData.stillingsProsent
                 ).firstOrNull()
-            ).filterValues { it != null }
+            ).mapNotNull { (key, value) -> value?.let { key to it } }.toMap()
         )
     }
 
@@ -75,7 +67,7 @@ fun utdanningsnivaa(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
         UtdanningSvar.INGEN_UTDANNING -> Utdanningsnivaa.INGEN_UTDANNING
         UtdanningSvar.GRUNNSKOLE -> Utdanningsnivaa.GRUNNSKOLE
         UtdanningSvar.VIDEREGAENDE_GRUNNUTDANNING -> Utdanningsnivaa.VIDEREGAENDE_GRUNNUTDANNING
-        UtdanningSvar.VIDEREGAENDE_FAGBREV_SVENNEBREV -> Utdanningsnivaa.VIDEREGAENDE_FAGBREV_SVENNEBREV
+        UtdanningSvar.VIDEREGAENDE_FAGBREV_SVENNEBREV -> Utdanningsnivaa.VIDEREGAENDE_FAGUTDANNING_SVENNEBREV
         UtdanningSvar.HOYERE_UTDANNING_1_TIL_4 -> Utdanningsnivaa.HOYERE_UTDANNING_1_TIL_4
         UtdanningSvar.HOYERE_UTDANNING_5_ELLER_MER -> Utdanningsnivaa.HOYERE_UTDANNING_5_ELLER_MER
         UtdanningSvar.INGEN_SVAR -> Utdanningsnivaa.UDEFINERT
@@ -93,29 +85,33 @@ fun arbeidserfaring(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
     )
 
 fun situasjonMottat(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
-    SituasjonMottat(
-        arbeidssokerBesvarelseEvent.foedselsnummer,
-        Metadata(
-            arbeidssokerBesvarelseEvent.registreringsTidspunkt,
-            Bruker(
-                BrukerType.SLUTTBRUKER,
-                arbeidssokerBesvarelseEvent.foedselsnummer
+    SituasjonMottatt(
+        hendelseId = UUID.randomUUID(),
+        identitetsnummer = arbeidssokerBesvarelseEvent.foedselsnummer,
+        situasjon = Situasjon(
+            id = UUID.randomUUID(),
+            metadata = Metadata(
+                arbeidssokerBesvarelseEvent.registreringsTidspunkt,
+                Bruker(
+                    BrukerType.SLUTTBRUKER,
+                    arbeidssokerBesvarelseEvent.foedselsnummer
+                ),
+                "veilarbregistrering",
+                "overføring"
             ),
-            "veilarbregistrering",
-            "overføring"
-        ),
-        Utdanning(
-            utdanningsnivaa(arbeidssokerBesvarelseEvent),
-            jaNeiVetIkke(arbeidssokerBesvarelseEvent.besvarelse.utdanningBestatt.verdi.name),
-            jaNeiVetIkke(arbeidssokerBesvarelseEvent.besvarelse.utdanningGodkjent.verdi.name)
-        ),
-        Helse(
-            jaNeiVetIkke(arbeidssokerBesvarelseEvent.besvarelse.helseHinder.verdi.name)
-        ),
-        arbeidserfaring(arbeidssokerBesvarelseEvent),
-        Arbeidsoekersituasjon(
-            listOfNotNull(
-                tilSituasjonElement(arbeidssokerBesvarelseEvent)
+            utdanning = Utdanning(
+                utdanningsnivaa = utdanningsnivaa(arbeidssokerBesvarelseEvent),
+                bestaatt = jaNeiVetIkke(arbeidssokerBesvarelseEvent.besvarelse.utdanningBestatt.verdi.name),
+                godkjent = jaNeiVetIkke(arbeidssokerBesvarelseEvent.besvarelse.utdanningGodkjent.verdi.name)
+            ),
+            helse = Helse(
+                jaNeiVetIkke(arbeidssokerBesvarelseEvent.besvarelse.helseHinder.verdi.name)
+            ),
+            arbeidserfaring = arbeidserfaring(arbeidssokerBesvarelseEvent),
+            arbeidsoekersituasjon = Arbeidsoekersituasjon(
+                listOfNotNull(
+                    tilSituasjonElement(arbeidssokerBesvarelseEvent)
+                )
             )
         )
     )

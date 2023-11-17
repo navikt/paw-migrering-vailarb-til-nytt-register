@@ -6,7 +6,6 @@ plugins {
 rootProject.name = "paw-migrering-vailarb-til-nytt-register"
 include(
     "app",
-    "hendelser",
     "veilarb-besvarelse",
     "veilarb-periode"
 )
