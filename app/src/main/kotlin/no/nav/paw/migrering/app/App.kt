@@ -8,6 +8,7 @@ import no.nav.paw.migrering.app.konfigurasjon.ApplikasjonKonfigurasjon
 import no.nav.paw.migrering.app.konfigurasjon.KafkaKonfigurasjon
 import no.nav.paw.migrering.app.konfigurasjon.toProperties
 import org.apache.kafka.common.serialization.Serdes
+import org.apache.kafka.common.utils.Time
 import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.StreamsBuilder
@@ -16,6 +17,8 @@ import org.apache.kafka.streams.kstream.Consumed
 import org.apache.kafka.streams.kstream.KStream
 import org.apache.kafka.streams.kstream.Produced
 import org.apache.kafka.streams.kstream.Repartitioned
+import org.apache.kafka.streams.state.internals.KeyValueStoreBuilder
+import org.apache.kafka.streams.state.internals.RocksDbKeyValueBytesStoreSupplier
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse as ArbSoekerHendelse
 
 fun main() {
@@ -23,10 +26,18 @@ fun main() {
     val applikasjonKonfigurasjon: ApplikasjonKonfigurasjon = lastKonfigurasjon("applikasjon_konfigurasjon.toml")
 
     val dependencies = createDependencies(applikasjonKonfigurasjon)
-
+    val streamBuilder = StreamsBuilder()
+    streamBuilder.addStateStore(
+        KeyValueStoreBuilder(
+            RocksDbKeyValueBytesStoreSupplier("db", false),
+            Serdes.Long(),
+            TilstandSerde(),
+            Time.SYSTEM
+        )
+    )
     val topology = topology(
         kafkaKonfigurasjon = kafkaKonfigurasjon,
-        streamBuilder = StreamsBuilder(),
+        streamBuilder = streamBuilder,
         veilarbPeriodeTopic = kafkaKonfigurasjon.streamKonfigurasjon.periodeTopic,
         veilarbBesvarelseTopic = kafkaKonfigurasjon.streamKonfigurasjon.situasjonTopic,
         hendelseTopic = kafkaKonfigurasjon.streamKonfigurasjon.eventlogTopic,
@@ -78,6 +89,7 @@ fun topology(
 
     periodeStrøm
         .merge(besvarelseStrøm)
+        .sorter("db")
         .to(hendelseTopic, Produced.with(Serdes.Long(), HendelseSerde()))
 
     return streamBuilder.build()

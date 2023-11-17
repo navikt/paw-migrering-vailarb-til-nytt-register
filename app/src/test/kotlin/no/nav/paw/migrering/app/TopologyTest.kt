@@ -12,16 +12,28 @@ import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.Hendelse
 import no.nav.paw.migrering.app.konfigurasjon.*
 import org.apache.kafka.common.serialization.Serdes
+import org.apache.kafka.common.utils.Time
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.TopologyTestDriver
+import org.apache.kafka.streams.state.internals.InMemoryKeyValueBytesStoreSupplier
+import org.apache.kafka.streams.state.internals.KeyValueStoreBuilder
 import java.time.Instant
 import java.time.LocalDate
 
 class TopologyTest : StringSpec({
+    val streamsBuilder = StreamsBuilder()
+    streamsBuilder.addStateStore(
+        KeyValueStoreBuilder(
+            InMemoryKeyValueBytesStoreSupplier("db"),
+            Serdes.Long(),
+            TilstandSerde(),
+            Time.SYSTEM
+        )
+    )
     "vi kan få en start event igjennom" {
         val topology = topology(
             kafkaKonfigurasjon = kafkaKonfigurasjon,
-            streamBuilder = StreamsBuilder(),
+            streamBuilder = streamsBuilder,
             veilarbPeriodeTopic = "veilarb.periode",
             veilarbBesvarelseTopic = "veilarb.besvarelse",
             hendelseTopic = "hendelse",
@@ -126,6 +138,7 @@ class TopologyTest : StringSpec({
                 )
             )
         )
+        Thread.sleep(20000)
         eventlogTopic.isEmpty shouldBe false
         val hendelse1 = eventlogTopic.readValue()
         hendelse1.shouldBeInstanceOf<Startet>()
