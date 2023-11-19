@@ -25,7 +25,7 @@ fun main() {
     val resource = TopologyTest::class.java.getResource("/arbeidssokerHendelseMeldingStartet.json")
     requireNotNull(resource) { "Finner ikke resurs" }
     val objectMapper = jacksonObjectMapper().findAndRegisterModules()
-    val antallPersoner = 100
+    val antallPersoner = 1_500_000
     val personer = hentIder(antallPersoner)
     val nåtid = Instant.now()
 
@@ -73,7 +73,7 @@ fun main() {
     val besvarelseProducer = KafkaProducer<String, ArbeidssokerBesvarelseEvent>(
         kafkaBesvarelseProducerProperties + kafkaConfig.properties
     )
-    val besvarelserPerPerson = 4
+    val besvarelserPerPerson = 6
     personer.asSequence().flatMap { identitetsnummer ->
         (0 until besvarelserPerPerson).asSequence().map {index ->
             besvarelse(

@@ -2,7 +2,6 @@ package no.nav.paw.migrering.app
 
 import kotlinx.coroutines.runBlocking
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
-import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.Hendelse
 import no.nav.paw.migrering.app.konfigurasjon.ApplikasjonKonfigurasjon
 import no.nav.paw.migrering.app.konfigurasjon.HendelseSortererKonfigurasjon
@@ -17,8 +16,6 @@ import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.kstream.*
 import org.apache.kafka.streams.state.internals.KeyValueStoreBuilder
 import org.apache.kafka.streams.state.internals.RocksDbKeyValueBytesStoreSupplier
-import org.slf4j.LoggerFactory
-import java.time.Duration
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse as ArbSoekerHendelse
 
 fun main() {
@@ -27,20 +24,20 @@ fun main() {
 
     val dependencies = createDependencies(applikasjonKonfigurasjon)
     val streamBuilder = StreamsBuilder()
+    val sortererKonfigurasjon: HendelseSortererKonfigurasjon = lastKonfigurasjon("hendelse_sorterings_konfigurasjon.toml")
     streamBuilder.addStateStore(
         KeyValueStoreBuilder(
-            RocksDbKeyValueBytesStoreSupplier("db", false),
+            RocksDbKeyValueBytesStoreSupplier(sortererKonfigurasjon.tilstandsDbNavn, false),
             Serdes.Long(),
             TilstandSerde(),
             Time.SYSTEM
         )
     )
-    val sorteringsKonfigurasjon: HendelseSortererKonfigurasjon = lastKonfigurasjon("hendelse_sorterings_konfigurasjon.toml")
     val topology = topology(
         kafkaKonfigurasjon = kafkaKonfigurasjon,
         streamBuilder = streamBuilder,
         kafkaKeysClient = dependencies.kafkaKeysClient,
-        sortererKonfigurasjon = sorteringsKonfigurasjon
+        sortererKonfigurasjon = sortererKonfigurasjon
     )
 
     val streams = KafkaStreams(topology, kafkaKonfigurasjon.properties.toProperties())
