@@ -11,6 +11,7 @@ import no.nav.paw.besvarelse.SisteStillingSvar
 import no.nav.paw.besvarelse.UtdanningSvar
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.Metadata
 
@@ -91,7 +92,7 @@ fun situasjonMottat(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
         situasjon = Situasjon(
             id = UUID.randomUUID(),
             metadata = Metadata(
-                arbeidssokerBesvarelseEvent.registreringsTidspunkt,
+                arbeidssokerBesvarelseEvent.registreringsTidspunkt.truncatedTo(ChronoUnit.MILLIS),
                 Bruker(
                     BrukerType.SLUTTBRUKER,
                     arbeidssokerBesvarelseEvent.foedselsnummer

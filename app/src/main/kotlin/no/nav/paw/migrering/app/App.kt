@@ -5,6 +5,7 @@ import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.Hendelse
 import no.nav.paw.migrering.app.konfigurasjon.ApplikasjonKonfigurasjon
+import no.nav.paw.migrering.app.konfigurasjon.HendelseSortererKonfigurasjon
 import no.nav.paw.migrering.app.konfigurasjon.KafkaKonfigurasjon
 import no.nav.paw.migrering.app.konfigurasjon.toProperties
 import org.apache.kafka.common.serialization.Serdes
@@ -13,12 +14,11 @@ import org.apache.kafka.streams.KafkaStreams
 import org.apache.kafka.streams.KeyValue
 import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.Topology
-import org.apache.kafka.streams.kstream.Consumed
-import org.apache.kafka.streams.kstream.KStream
-import org.apache.kafka.streams.kstream.Produced
-import org.apache.kafka.streams.kstream.Repartitioned
+import org.apache.kafka.streams.kstream.*
 import org.apache.kafka.streams.state.internals.KeyValueStoreBuilder
 import org.apache.kafka.streams.state.internals.RocksDbKeyValueBytesStoreSupplier
+import org.slf4j.LoggerFactory
+import java.time.Duration
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse as ArbSoekerHendelse
 
 fun main() {
@@ -35,13 +35,12 @@ fun main() {
             Time.SYSTEM
         )
     )
+    val sorteringsKonfigurasjon: HendelseSortererKonfigurasjon = lastKonfigurasjon("hendelse_sorterings_konfigurasjon.toml")
     val topology = topology(
         kafkaKonfigurasjon = kafkaKonfigurasjon,
         streamBuilder = streamBuilder,
-        veilarbPeriodeTopic = kafkaKonfigurasjon.streamKonfigurasjon.periodeTopic,
-        veilarbBesvarelseTopic = kafkaKonfigurasjon.streamKonfigurasjon.situasjonTopic,
-        hendelseTopic = kafkaKonfigurasjon.streamKonfigurasjon.eventlogTopic,
-        kafkaKeysClient = dependencies.kafkaKeysClient
+        kafkaKeysClient = dependencies.kafkaKeysClient,
+        sortererKonfigurasjon = sorteringsKonfigurasjon
     )
 
     val streams = KafkaStreams(topology, kafkaKonfigurasjon.properties.toProperties())
@@ -53,19 +52,18 @@ fun main() {
 fun topology(
     kafkaKonfigurasjon: KafkaKonfigurasjon,
     streamBuilder: StreamsBuilder,
-    veilarbPeriodeTopic: String,
-    veilarbBesvarelseTopic: String,
-    hendelseTopic: String,
-    kafkaKeysClient: KafkaKeysClient
+    kafkaKeysClient: KafkaKeysClient,
+    sortererKonfigurasjon: HendelseSortererKonfigurasjon
 ): Topology {
+    val veilarbPeriodeTopic = kafkaKonfigurasjon.streamKonfigurasjon.periodeTopic
+    val veilarbBesvarelseTopic = kafkaKonfigurasjon.streamKonfigurasjon.situasjonTopic
+    val hendelseTopic = kafkaKonfigurasjon.streamKonfigurasjon.eventlogTopic
     val periodeStrøm: KStream<Long, ArbSoekerHendelse> = streamBuilder.stream(
         veilarbPeriodeTopic,
         Consumed.with(
             Serdes.String(),
             ArbeidssoekerEventSerde()
-        ).withTimestampExtractor { record, _ ->
-            (record.value() as? ArbeidssokerperiodeHendelseMelding)?.tidspunkt?.toEpochMilli() ?: 0L
-        }
+        )
     ).map { _, melding ->
         val hendelse = when (melding.hendelse) {
             Hendelse.STARTET -> melding.toStartEvent()
@@ -73,7 +71,7 @@ fun topology(
         }
         val key = runBlocking { kafkaKeysClient.getKey(melding.foedselsnummer) }
         KeyValue(key.id, hendelse)
-    }.repartition(Repartitioned.with(Serdes.Long(), HendelseSerde()))
+    }
 
     val besvarelseStrøm: KStream<Long, ArbSoekerHendelse> = streamBuilder.stream(
         veilarbBesvarelseTopic,
@@ -85,11 +83,12 @@ fun topology(
         val key = runBlocking { kafkaKeysClient.getKey(arbeidssokerBesvarelseEvent.foedselsnummer) }
         val hendelse = arbeidssokerBesvarelseEvent.tilSituasjonMottat()
         KeyValue(key.id, hendelse as ArbSoekerHendelse)
-    }.repartition(Repartitioned.with(Serdes.Long(), HendelseSerde()))
+    }
 
     periodeStrøm
         .merge(besvarelseStrøm)
-        .sorter("db")
+        .repartition(Repartitioned.with(Serdes.Long(), HendelseSerde()))
+        .sorter(sortererKonfigurasjon)
         .to(hendelseTopic, Produced.with(Serdes.Long(), HendelseSerde()))
 
     return streamBuilder.build()

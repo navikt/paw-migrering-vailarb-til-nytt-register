@@ -1,0 +1,3 @@
+interval = "PT30S"
+forsinkelse = "PT5M"
+tilstandsDbNavn = "sortering-tilstand-v1"

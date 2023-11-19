@@ -4,6 +4,7 @@ import no.nav.paw.arbeidssokerregisteret.intern.v1.Startet
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Avsluttet
 import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.*
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 data class ArbeidssokerperiodeHendelseMelding(
@@ -14,7 +15,7 @@ data class ArbeidssokerperiodeHendelseMelding(
     fun toStartEvent(): Startet = Startet (
         identitetsnummer = foedselsnummer,
         metadata = Metadata(
-            tidspunkt = tidspunkt,
+            tidspunkt = tidspunkt.truncatedTo(ChronoUnit.MILLIS),
             utfoertAv = Bruker(BrukerType.UDEFINERT, foedselsnummer),
             kilde = "veilarbregistrering",
             aarsak = "overføring"
@@ -25,7 +26,7 @@ data class ArbeidssokerperiodeHendelseMelding(
     fun toAvsluttetEvent(): Avsluttet = Avsluttet(
         identitetsnummer = foedselsnummer,
         metadata = Metadata(
-            tidspunkt = tidspunkt,
+            tidspunkt = tidspunkt.truncatedTo(ChronoUnit.MILLIS),
             utfoertAv = Bruker(BrukerType.UDEFINERT, foedselsnummer),
             kilde = "veilarbregistrering",
             aarsak = "overføring"

@@ -17,6 +17,7 @@ import org.apache.kafka.streams.StreamsBuilder
 import org.apache.kafka.streams.TopologyTestDriver
 import org.apache.kafka.streams.state.internals.InMemoryKeyValueBytesStoreSupplier
 import org.apache.kafka.streams.state.internals.KeyValueStoreBuilder
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 
@@ -34,10 +35,8 @@ class TopologyTest : StringSpec({
         val topology = topology(
             kafkaKonfigurasjon = kafkaKonfigurasjon,
             streamBuilder = streamsBuilder,
-            veilarbPeriodeTopic = "veilarb.periode",
-            veilarbBesvarelseTopic = "veilarb.besvarelse",
-            hendelseTopic = "hendelse",
-            kafkaKeysClient = InMemKafkaKeysClient()
+            kafkaKeysClient = InMemKafkaKeysClient(),
+            sortererKonfigurasjon = sortererKonfigurasjon
         )
         val testDriver = TopologyTestDriver(topology, kafkaKonfigurasjon.properties.toProperties())
         val eventlogTopic = testDriver.createOutputTopic(
@@ -46,12 +45,12 @@ class TopologyTest : StringSpec({
             HendelseSerde().deserializer()
         )
         val veilarbPeriodeTopic = testDriver.createInputTopic(
-            "veilarb.periode",
+            kafkaKonfigurasjon.streamKonfigurasjon.periodeTopic,
             Serdes.String().serializer(),
             ArbeidssoekerEventSerde().serializer()
         )
         val veilarbBesvarelseTopic = testDriver.createInputTopic(
-            "veilarb.besvarelse",
+            kafkaKonfigurasjon.streamKonfigurasjon.situasjonTopic,
             Serdes.String().serializer(),
             kafkaKonfigurasjon.opprettSerde<ArbeidssokerBesvarelseEvent>().serializer()
         )
@@ -179,4 +178,10 @@ val kafkaKonfigurasjon = KafkaKonfigurasjon(
         null,
         null
     )
+)
+
+val sortererKonfigurasjon  = HendelseSortererKonfigurasjon(
+    interval = Duration.ZERO,
+    forsinkelse = Duration.ZERO,
+    tilstandsDbNavn = "db",
 )

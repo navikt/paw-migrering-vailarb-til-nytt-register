@@ -4,6 +4,7 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.confluent.kafka.serializers.KafkaAvroSerializerConfig
 import io.confluent.kafka.serializers.subject.RecordNameStrategy
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+import no.nav.paw.migrering.app.HendelseSerde
 import org.apache.avro.specific.SpecificRecord
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.common.config.SslConfigs
@@ -20,7 +21,7 @@ data class KafkaKonfigurasjon(
         StreamsConfig.APPLICATION_ID_CONFIG to streamKonfigurasjon.applikasjonsId,
         StreamsConfig.BOOTSTRAP_SERVERS_CONFIG to serverKonfigurasjon.kafkaBrokers,
         StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG to Serdes.Long().javaClass.name,
-        StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG to SpecificAvroSerde::class.java.name,
+        StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG to HendelseSerde::class.java.name,
         KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG to schemaRegistryKonfigurasjon.url,
         KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS to schemaRegistryKonfigurasjon.autoRegistrerSchema,
         KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,

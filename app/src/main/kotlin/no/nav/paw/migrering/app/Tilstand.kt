@@ -17,23 +17,23 @@ fun Tilstand?.leggTilHendelse(hendelse: Hendelse): Tilstand {
     return when (hendelse) {
         is Startet -> this?.copy(
             sistEndret = Instant.now(),
-            startet = (this.startet + hendelse)
+            startet = startet + hendelse
         ) ?: Tilstand(
             startet = listOf(hendelse),
             avsluttet = emptyList(),
-            situasjonMottatt = emptyList()
+            situasjonMottatt = ArrayList()
         )
         is Avsluttet -> this?.copy(
             sistEndret = Instant.now(),
-            avsluttet = (this.avsluttet + hendelse)
+            avsluttet = avsluttet + hendelse
         ) ?: Tilstand(
-            startet = emptyList(),
+            startet = ArrayList(),
             avsluttet = listOf(hendelse),
-            situasjonMottatt = emptyList()
+            situasjonMottatt = ArrayList()
         )
         is SituasjonMottatt -> this?.copy(
             sistEndret = Instant.now(),
-            situasjonMottatt = (this.situasjonMottatt + hendelse)
+            situasjonMottatt = situasjonMottatt + hendelse
         ) ?: Tilstand(
             startet = emptyList(),
             avsluttet = emptyList(),

@@ -12,14 +12,16 @@ class TilstandSerde : Serde<Tilstand> {
         .registerModules(
             KotlinModule.Builder()
                 .withReflectionCacheSize(512)
-                .configure(KotlinFeature.NullToEmptyCollection, true)
-                .configure(KotlinFeature.NullToEmptyMap, true)
+                .configure(KotlinFeature.NullToEmptyCollection, false)
+                .configure(KotlinFeature.NullToEmptyMap, false)
                 .configure(KotlinFeature.NullIsSameAsDefault, false)
                 .configure(KotlinFeature.SingletonSupport, false)
                 .configure(KotlinFeature.StrictNullChecks, false)
                 .build(),
             com.fasterxml.jackson.datatype.jsr310.JavaTimeModule()
         )
+
+
     override fun serializer() = TilstandSerializer(objectMapper)
     override fun deserializer() = TilstandDeserializer(objectMapper)
 }

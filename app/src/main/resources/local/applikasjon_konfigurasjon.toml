@@ -3,5 +3,6 @@ tokenEndpointUrl = "http://localhost:8081/default/token"
 clientId = "paw-migrering-veilarb-til-nytt-register"
 
 [kafkaKeysConfig]
-url = "http://localhost:8090/hentEllerOpprett"
+url = "MOCK"
+#url = "http://localhost:8090/hentEllerOpprett"
 scope = "api://<cluster>.<namespace>.<outbound-app-name>/.default"
