@@ -3,17 +3,26 @@ package no.nav.paw.migrering.app
 import no.nav.paw.arbeidssokerregisteret.GJELDER_FRA_DATO
 import no.nav.paw.arbeidssokerregisteret.GJELDER_TIL_DATO
 import no.nav.paw.arbeidssokerregisteret.PROSENT
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse
 import no.nav.paw.arbeidssokerregisteret.intern.v1.SituasjonMottatt
 import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.*
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.besvarelse.DinSituasjonSvar
 import no.nav.paw.besvarelse.SisteStillingSvar
 import no.nav.paw.besvarelse.UtdanningSvar
+import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.Metadata
+
+
+fun tilPeriode(periode: ArbeidssokerperiodeHendelseMelding): Hendelse =
+    when (periode.hendelse) {
+        no.nav.paw.migrering.Hendelse.STARTET -> periode.toStartEvent()
+        no.nav.paw.migrering.Hendelse.STOPPET -> periode.toAvsluttetEvent()
+    }
 
 fun ArbeidssokerBesvarelseEvent.tilSituasjonMottat(): SituasjonMottatt = situasjonMottat(this)
 fun tilSituasjonElement(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent): ArbeidssoekersitusjonMedDetaljer? =

@@ -13,7 +13,6 @@ import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.atomic.AtomicReference
 
 fun main() {
     val kafkaKonfigurasjon = lastKonfigurasjon<KafkaKonfigurasjon>("kafka_konfigurasjon.toml")
@@ -35,23 +34,25 @@ fun main() {
         }
     val teller = AtomicLong(0)
     val antallFeil = AtomicLong(0)
-    val forrigeTs = AtomicReference<Instant>(null)
+    val tidspunktMap = ConcurrentHashMap<Int, Instant>()
+    val startTid = Instant.now()
     generateSequence {
         val records = periodeConsumer.poll(Duration.ofSeconds(30))
         if (records.isEmpty) {
             null
         } else {
-            records.map { it.value() }
+            records.map { it.partition() to it.value() }
         }
     }.flatten()
         .onEach { teller.incrementAndGet() }
-        .forEach { hendelse ->
-            val eksiterendeTs = forrigeTs.getAndSet(hendelse.metadata.tidspunkt)
+        .forEach { (partition, hendelse) ->
+            val eksiterendeTs = tidspunktMap.put(partition, hendelse.metadata.tidspunkt)
             if (eksiterendeTs != null && eksiterendeTs.isAfter(hendelse.metadata.tidspunkt)) {
                 antallFeil.incrementAndGet()
             }
         }
     println("Antall hendelser: ${teller.get()}")
     println("Antall feil: ${antallFeil.get()}")
+    println("Tid brukt: ${Duration.between(startTid, Instant.now()).abs()}")
 
 }
