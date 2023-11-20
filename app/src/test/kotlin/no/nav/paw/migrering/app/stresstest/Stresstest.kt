@@ -33,25 +33,25 @@ fun main() {
         periodeHendelse(
             hendelse = Hendelse.STARTET,
             identitetsnummer = identitetsnummer,
-            tidspunkt = nåtid.minus(Duration.ofDays(3650).plus(Duration.ofHours(identitetsnummer.toLong())))
+            tidspunkt = nåtid.minus(Duration.ofDays(3650))
         )
     }.plus(personer.map { identitetsnummer ->
         periodeHendelse(
             hendelse = Hendelse.STOPPET,
             identitetsnummer = identitetsnummer,
-            tidspunkt = nåtid.minus(Duration.ofDays(2650).plus(Duration.ofHours(identitetsnummer.toLong())))
+            tidspunkt = nåtid.minus(Duration.ofDays(2650))
         )
     }).plus(personer.asSequence().map { identitetsnummer ->
         periodeHendelse(
             hendelse = Hendelse.STARTET,
             identitetsnummer = identitetsnummer,
-            tidspunkt = nåtid.minus(Duration.ofDays(1650).plus(Duration.ofHours(identitetsnummer.toLong())))
+            tidspunkt = nåtid.minus(Duration.ofDays(1650))
         )
     }).plus(personer.asSequence().map { identitetsnummer ->
         periodeHendelse(
             hendelse = Hendelse.STOPPET,
             identitetsnummer = identitetsnummer,
-            tidspunkt = nåtid.minus(Duration.ofDays(650).plus(Duration.ofHours(identitetsnummer.toLong())))
+            tidspunkt = nåtid.minus(Duration.ofDays(650))
         )
     }).forEach { periodeHendelse ->
         val record = ProducerRecord(
@@ -78,7 +78,7 @@ fun main() {
         (0 until besvarelserPerPerson).asSequence().map {index ->
             besvarelse(
                 identitetsnummer = identitetsnummer,
-                tidspunkt = nåtid.minus(Duration.ofDays(3648-(1000L*index)).plus(Duration.ofHours(identitetsnummer.toLong())))
+                tidspunkt = nåtid.minus(Duration.ofDays(1000).multipliedBy(6L - index))
             )
         }
     }.map { besvarelse ->
