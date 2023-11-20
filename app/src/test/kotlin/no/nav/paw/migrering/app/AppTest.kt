@@ -4,11 +4,14 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.migrering.app.konfigurasjon.KafkaKonfigurasjon
+import no.nav.paw.migrering.app.konfigurasjon.opprettSerde
+import no.nav.paw.migrering.app.konfigurasjon.properties
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 import java.util.*
 
+class Dummy()
 fun main() {
     val kafkaPeriodeProducerProperties = kafkaProducerProperties(
         producerId = "test",
@@ -18,7 +21,7 @@ fun main() {
     val kafkaConfig = lastKonfigurasjon<KafkaKonfigurasjon>("kafka_konfigurasjon.toml")
     val kafkaPeriodeProducer = KafkaProducer<String, String>(kafkaPeriodeProducerProperties + kafkaConfig.properties)
 
-    val resource = TopologyTest::class.java.getResource("/arbeidssokerHendelseMeldingStartet.json")
+    val resource = Dummy::class.java.getResource("/arbeidssokerHendelseMeldingStartet.json")
     requireNotNull(resource) { "Finner ikke resurs" }
     val objectMapper = jacksonObjectMapper().findAndRegisterModules()
 
@@ -26,7 +29,7 @@ fun main() {
 
     periodeMeldinger.forEach { (timestamp, hendelse) ->
         val record = ProducerRecord(
-            /* topic = */ kafkaConfig.streamKonfigurasjon.periodeTopic,
+            /* topic = */ kafkaConfig.topics.periodeTopic,
             /* partition = */ null,
             /* timestamp = */ timestamp.epochSecond,
             /* key = */ hendelse.foedselsnummer,
@@ -47,7 +50,7 @@ fun main() {
 
     besvarelser.map{ besvarelse ->
         besvarelseProducer.send(ProducerRecord(
-            /* topic = */ kafkaConfig.streamKonfigurasjon.situasjonTopic,
+            /* topic = */ kafkaConfig.topics.situasjonTopic,
             /* partition = */ null,
             /* timestamp = */ besvarelse.registreringsTidspunkt.epochSecond,
             /* key = */ UUID.randomUUID().toString(),

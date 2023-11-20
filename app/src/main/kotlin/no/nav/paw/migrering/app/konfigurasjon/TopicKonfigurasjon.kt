@@ -1,8 +1,6 @@
 package no.nav.paw.migrering.app.konfigurasjon
 
-data class StreamKonfigurasjon(
-    val tilstandsDatabase: String,
-    val applikasjonsId: String,
+data class TopicKonfigurasjon(
     val eventlogTopic: String,
     val periodeTopic: String,
     val situasjonTopic: String

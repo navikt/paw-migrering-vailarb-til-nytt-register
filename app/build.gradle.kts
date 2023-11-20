@@ -9,8 +9,17 @@ val logstashVersion = "7.3"
 val ktorVersion = pawObservability.versions.ktor
 val navCommonModulesVersion = "2.2023.01.10_13.49-81ddc732df3a"
 val hopliteVersion = "2.8.0.RC3"
+val exposedVersion = "0.42.1"
 
 dependencies {
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-crypt:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
+    implementation("com.zaxxer:HikariCP:5.0.1")
+    implementation("org.postgresql:postgresql:42.6.0")
+    implementation("org.flywaydb:flyway-core:9.21.2")
     implementation(project(":veilarb-besvarelse"))
     implementation(project(":veilarb-periode"))
     implementation("no.nav.paw.arbeidssokerregisteret.internt.schema:interne-eventer:23.11.16.65-1")

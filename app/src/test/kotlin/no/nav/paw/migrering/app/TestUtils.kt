@@ -13,7 +13,7 @@ fun <K, V> kafkaProducerProperties(
     valueSerializer: KClass<out Serializer<V>>,
     ackConfig: String = "all",
     linger: Duration = Duration.ZERO
-): Map<String, Any> {
+): Map<String, Any?> {
     require(producerId.isNotEmpty()) { "'producerId' kan ikke være tom(eller bare bestå av mellomrom)" }
     return mapOf(
         ProducerConfig.CLIENT_ID_CONFIG to producerId,

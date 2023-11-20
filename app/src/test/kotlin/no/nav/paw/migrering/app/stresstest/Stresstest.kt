@@ -1,11 +1,13 @@
 package no.nav.paw.migrering.app.stresstest
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.migrering.Hendelse
 import no.nav.paw.migrering.app.*
 import no.nav.paw.migrering.app.konfigurasjon.KafkaKonfigurasjon
+import no.nav.paw.migrering.app.konfigurasjon.opprettSerde
+import no.nav.paw.migrering.app.konfigurasjon.properties
+import no.nav.paw.migrering.app.konfigurasjon.propertiesMedAvroSchemaReg
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
@@ -22,10 +24,10 @@ fun main() {
     val kafkaConfig = lastKonfigurasjon<KafkaKonfigurasjon>("kafka_konfigurasjon.toml")
     val kafkaPeriodeProducer = KafkaProducer<String, String>(kafkaPeriodeProducerProperties + kafkaConfig.properties)
 
-    val resource = TopologyTest::class.java.getResource("/arbeidssokerHendelseMeldingStartet.json")
+    val resource = Dummy::class.java.getResource("/arbeidssokerHendelseMeldingStartet.json")
     requireNotNull(resource) { "Finner ikke resurs" }
     val objectMapper = jacksonObjectMapper().findAndRegisterModules()
-    val antallPersoner = 1_500_000
+    val antallPersoner = 15_000
     val personer = hentIder(antallPersoner)
     val nåtid = Instant.now()
 
@@ -55,7 +57,7 @@ fun main() {
         )
     }).forEach { periodeHendelse ->
         val record = ProducerRecord(
-            /* topic = */ kafkaConfig.streamKonfigurasjon.periodeTopic,
+            /* topic = */ kafkaConfig.topics.periodeTopic,
             /* partition = */ null,
             /* timestamp = */ Instant.now().epochSecond,
             /* key = */ periodeHendelse.foedselsnummer,
@@ -71,7 +73,7 @@ fun main() {
         valueSerializer = kafkaConfig.opprettSerde<ArbeidssokerBesvarelseEvent>().serializer()::class
     )
     val besvarelseProducer = KafkaProducer<String, ArbeidssokerBesvarelseEvent>(
-        kafkaBesvarelseProducerProperties + kafkaConfig.properties
+        kafkaBesvarelseProducerProperties + kafkaConfig.propertiesMedAvroSchemaReg
     )
     val besvarelserPerPerson = 6
     personer.asSequence().flatMap { identitetsnummer ->
@@ -84,7 +86,7 @@ fun main() {
     }.map { besvarelse ->
         besvarelseProducer.send(
             ProducerRecord(
-                /* topic = */ kafkaConfig.streamKonfigurasjon.situasjonTopic,
+                /* topic = */ kafkaConfig.topics.situasjonTopic,
                 /* partition = */ null,
                 /* timestamp = */ besvarelse.registreringsTidspunkt.epochSecond,
                 /* key = */ UUID.randomUUID().toString(),

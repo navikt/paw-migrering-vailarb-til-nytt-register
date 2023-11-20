@@ -1,92 +1,144 @@
 package no.nav.paw.migrering.app
 
+import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
+import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
+import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.Hendelse
-import no.nav.paw.migrering.app.konfigurasjon.ApplikasjonKonfigurasjon
-import no.nav.paw.migrering.app.konfigurasjon.HendelseSortererKonfigurasjon
-import no.nav.paw.migrering.app.konfigurasjon.KafkaKonfigurasjon
-import no.nav.paw.migrering.app.konfigurasjon.toProperties
+import no.nav.paw.migrering.app.db.HendelserTabell
+import no.nav.paw.migrering.app.db.flywayMigrate
+import no.nav.paw.migrering.app.konfigurasjon.*
+import org.apache.avro.specific.SpecificRecord
+import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.header.internals.RecordHeaders
 import org.apache.kafka.common.serialization.Serdes
-import org.apache.kafka.common.utils.Time
-import org.apache.kafka.streams.KafkaStreams
-import org.apache.kafka.streams.KeyValue
-import org.apache.kafka.streams.StreamsBuilder
-import org.apache.kafka.streams.Topology
 import org.apache.kafka.streams.kstream.*
-import org.apache.kafka.streams.state.internals.KeyValueStoreBuilder
-import org.apache.kafka.streams.state.internals.RocksDbKeyValueBytesStoreSupplier
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse as ArbSoekerHendelse
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.slf4j.LoggerFactory
+import java.time.Duration
+import java.util.concurrent.CompletableFuture.runAsync
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.sequences.Sequence
+import kotlin.system.exitProcess
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse as InternHendelse
 
 fun main() {
+    val logger = LoggerFactory.getLogger("migrering")
     val kafkaKonfigurasjon: KafkaKonfigurasjon = lastKonfigurasjon("kafka_konfigurasjon.toml")
     val applikasjonKonfigurasjon: ApplikasjonKonfigurasjon = lastKonfigurasjon("applikasjon_konfigurasjon.toml")
-
+    val databaseKonfigurasjon: DatabaseKonfigurasjon = lastKonfigurasjon("postgres.toml")
+    val dataSource = databaseKonfigurasjon.dataSource()
+    flywayMigrate(dataSource)
+    Database.connect(dataSource)
     val dependencies = createDependencies(applikasjonKonfigurasjon)
-    val streamBuilder = StreamsBuilder()
-    val sortererKonfigurasjon: HendelseSortererKonfigurasjon = lastKonfigurasjon("hendelse_sorterings_konfigurasjon.toml")
-    streamBuilder.addStateStore(
-        KeyValueStoreBuilder(
-            RocksDbKeyValueBytesStoreSupplier(sortererKonfigurasjon.tilstandsDbNavn, false),
-            Serdes.Long(),
-            TilstandSerde(),
-            Time.SYSTEM
-        )
-    )
-    val topology = topology(
-        kafkaKonfigurasjon = kafkaKonfigurasjon,
-        streamBuilder = streamBuilder,
-        kafkaKeysClient = dependencies.kafkaKeysClient,
-        sortererKonfigurasjon = sortererKonfigurasjon
-    )
 
-    val streams = KafkaStreams(topology, kafkaKonfigurasjon.properties.toProperties())
-    streams.start()
+    val periodeConsumer = KafkaConsumer<String, ArbeidssokerperiodeHendelseMelding>(kafkaKonfigurasjon.properties.medKeySerde(Serdes.String()).medValueSerde(ArbeidssoekerEventSerde()))
+    val besvarelseConsumer = KafkaConsumer<String, ArbeidssokerBesvarelseEvent>(kafkaKonfigurasjon.propertiesMedAvroSchemaReg.medKeySerde(Serdes.String()).medValueSerde(SpecificAvroSerde<SpecificRecord>()))
+    val hendelseProducer = KafkaProducer<Long, InternHendelse>(kafkaKonfigurasjon.properties.medKeySerde(Serdes.Long()).medValueSerde(HendelseSerde()))
 
-    Runtime.getRuntime().addShutdownHook(Thread(streams::close))
-}
+    periodeConsumer.subscribe(listOf(kafkaKonfigurasjon.topics.periodeTopic))
+    besvarelseConsumer.subscribe(listOf(kafkaKonfigurasjon.topics.situasjonTopic))
 
-fun topology(
-    kafkaKonfigurasjon: KafkaKonfigurasjon,
-    streamBuilder: StreamsBuilder,
-    kafkaKeysClient: KafkaKeysClient,
-    sortererKonfigurasjon: HendelseSortererKonfigurasjon
-): Topology {
-    val veilarbPeriodeTopic = kafkaKonfigurasjon.streamKonfigurasjon.periodeTopic
-    val veilarbBesvarelseTopic = kafkaKonfigurasjon.streamKonfigurasjon.situasjonTopic
-    val hendelseTopic = kafkaKonfigurasjon.streamKonfigurasjon.eventlogTopic
-    val periodeStrøm: KStream<Long, ArbSoekerHendelse> = streamBuilder.stream(
-        veilarbPeriodeTopic,
-        Consumed.with(
-            Serdes.String(),
-            ArbeidssoekerEventSerde()
-        )
-    ).map { _, melding ->
-        val hendelse = when (melding.hendelse) {
-            Hendelse.STARTET -> melding.toStartEvent()
-            Hendelse.STOPPET -> melding.toAvsluttetEvent()
+    val avslutt = AtomicBoolean(false)
+
+    runAsync {
+        val periodeSekvens: Sequence<List<InternHendelse>> = periodeConsumer.asSequence(avslutt, ::tilPeriode)
+        val besvarelseSekvens: Sequence<List<InternHendelse>> = besvarelseConsumer.asSequence(avslutt) { it.tilSituasjonMottat() }
+
+        periodeSekvens
+            .zip(besvarelseSekvens)
+            .map { it.first + it.second }
+            .forEach { hendelser ->
+                println("Hendelser: ${hendelser.size}")
+                if (hendelser.isEmpty()) {
+                    skrivTilTopic(
+                        kafkaKonfigurasjon.topics.eventlogTopic,
+                        hendelseProducer,
+                        dependencies.kafkaKeysClient
+                    )
+                } else {
+                    skrivBatch(hendelser)
+                }
+            }
+        periodeConsumer.commitSync()
+        besvarelseConsumer.commitSync()
+    }.handle { _, t ->
+        if (t != null) {
+            logger.error("Feil ved migrering", t)
+            exitProcess(1)
+        } else {
+            logger.info("Migrering avsluttes")
         }
-        val key = runBlocking { kafkaKeysClient.getKey(melding.foedselsnummer) }
-        KeyValue(key.id, hendelse)
-    }
-
-    val besvarelseStrøm: KStream<Long, ArbSoekerHendelse> = streamBuilder.stream(
-        veilarbBesvarelseTopic,
-        Consumed.with(
-            Serdes.String(),
-            kafkaKonfigurasjon.opprettSerde<ArbeidssokerBesvarelseEvent>()
-        )
-    ).map { _, arbeidssokerBesvarelseEvent ->
-        val key = runBlocking { kafkaKeysClient.getKey(arbeidssokerBesvarelseEvent.foedselsnummer) }
-        val hendelse = arbeidssokerBesvarelseEvent.tilSituasjonMottat()
-        KeyValue(key.id, hendelse as ArbSoekerHendelse)
-    }
-
-    periodeStrøm
-        .merge(besvarelseStrøm)
-        .repartition(Repartitioned.with(Serdes.Long(), HendelseSerde()))
-        .sorter(sortererKonfigurasjon)
-        .to(hendelseTopic, Produced.with(Serdes.Long(), HendelseSerde()))
-
-    return streamBuilder.build()
+    }.join()
 }
+
+val batchId = AtomicInteger(0)
+fun <K, V, R> KafkaConsumer<K, V>.asSequence(avslutt: AtomicBoolean, mapper: ((V) -> R)): Sequence<List<R>> {
+    val id = batchId.incrementAndGet()
+    return generateSequence {
+        commitSync()
+        if (avslutt.get()) null else poll(Duration.ofMillis(250))
+    }.map { it.map { record -> record.value() } }
+        .map { batch -> batch.map(mapper) }
+        .onEach { println("sekvens $id forwarder ${it.size} hendelser") }
+}
+
+tailrec fun skrivTilTopic(topic: String, producer: KafkaProducer<Long, InternHendelse>, kafkaKeysClient: KafkaKeysClient) {
+    val antall = transaction {
+        HendelserTabell
+            .select { Op.TRUE }
+            .orderBy(HendelserTabell.tidspunkt to SortOrder.ASC)
+            .limit(200)
+            .asSequence()
+            .map { resultRow ->
+                resultRow[HendelserTabell.id] to HendelseSerde().deserializer().deserialize("", resultRow[HendelserTabell.hendelse])
+            }.onEach { (key, _) ->
+                HendelserTabell.deleteWhere { id.eq(key) }
+            }.mapNotNull(Pair<Long, InternHendelse?>::second)
+            .map { hendelse ->
+                runBlocking { kafkaKeysClient.getKey(hendelse.identitetsnummer) to hendelse }
+            }.map { (key, hendelse) ->
+                ProducerRecord(
+                    topic,
+                    null,
+                    hendelse.metadata.tidspunkt.toEpochMilli(),
+                    key.id,
+                    hendelse,
+                    RecordHeaders()
+                )
+            }
+            .toList().let { batch ->
+                batch.forEach { producer.send(it) }
+                producer.flush()
+                batch.size
+            }
+    }
+    if (antall > 0) {
+        skrivTilTopic(topic, producer, kafkaKeysClient)
+    } else {
+        return
+    }
+}
+
+
+fun skrivBatch(batch: List<InternHendelse>) {
+    transaction {
+        val antall = HendelserTabell.batchInsert(data = batch, body = { hendelse ->
+            this[HendelserTabell.hendelse] = HendelseSerde().serializer().serialize("", hendelse)
+            this[HendelserTabell.tidspunkt] = hendelse.metadata.tidspunkt
+        }).size
+        println("Batch inneholder ${batch.size} hendelser, skrevet $antall hendelser til database")
+    }
+}
+
+fun tilPeriode(periode: ArbeidssokerperiodeHendelseMelding): InternHendelse =
+    when (periode.hendelse) {
+        Hendelse.STARTET -> periode.toStartEvent()
+        Hendelse.STOPPET -> periode.toAvsluttetEvent()
+    }

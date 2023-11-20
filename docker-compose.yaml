@@ -1,6 +1,15 @@
 version: '3.9'
 
 services:
+  database:
+    image: postgres:14
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=arbeidssokermigrering
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.1
     hostname: zookeeper
