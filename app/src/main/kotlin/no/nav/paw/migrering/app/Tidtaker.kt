@@ -11,7 +11,7 @@ fun <R> loggTid(id: String, funksjon: () -> R):R {
         funksjon()
     } finally {
         val sluttet = Instant.now()
-        println("$id tok ${Duration.between(startet, sluttet).abs()}")
+        logger.trace("{} tok {}", id, Duration.between(startet, sluttet).abs())
     }
 }
 
