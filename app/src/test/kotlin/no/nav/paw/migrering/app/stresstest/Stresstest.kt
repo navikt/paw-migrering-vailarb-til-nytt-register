@@ -65,7 +65,6 @@ fun main() {
         )
         kafkaPeriodeProducer.send(record)
     }
-    kafkaPeriodeProducer.flush()
 
     val kafkaBesvarelseProducerProperties = kafkaProducerProperties(
         producerId = "test5",
@@ -83,7 +82,7 @@ fun main() {
                 tidspunkt = nåtid.minus(Duration.ofDays(1000).multipliedBy(6L - index))
             )
         }
-    }.map { besvarelse ->
+    }.forEach { besvarelse ->
         besvarelseProducer.send(
             ProducerRecord(
                 /* topic = */ kafkaConfig.topics.situasjonTopic,
@@ -93,7 +92,8 @@ fun main() {
                 /* value = */ besvarelse
             )
         )
-    }.forEach { it.get() }
+    }
+    kafkaPeriodeProducer.flush()
     besvarelseProducer.flush()
     besvarelseProducer.close()
     kafkaPeriodeProducer.close()
