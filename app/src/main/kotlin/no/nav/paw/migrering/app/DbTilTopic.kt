@@ -22,8 +22,10 @@ fun skrivTilTopic(topic: String, producer: KafkaProducer<Long, Hendelse>, kafkaK
             .asSequence()
             .map { resultRow ->
                 resultRow[HendelserTabell.id] to HendelseSerde().deserializer().deserialize("", resultRow[HendelserTabell.hendelse])
-            }.onEach { (key, _) ->
-                HendelserTabell.deleteWhere { id.eq(key) }
+            }.filter { (key, _) ->
+                loggTid("slett") {
+                    HendelserTabell.deleteWhere { id.eq(key) } == 1
+                }
             }.mapNotNull(Pair<Long, Hendelse?>::second)
             .map { hendelse ->
                 runBlocking { kafkaKeysClient.getKey(hendelse.identitetsnummer) to hendelse }
@@ -37,10 +39,12 @@ fun skrivTilTopic(topic: String, producer: KafkaProducer<Long, Hendelse>, kafkaK
                     RecordHeaders()
                 )
             }.also { batch ->
-                batch.forEach { record ->
-                    producer.send(record)
+                loggTid("send batch til topic") {
+                    batch.forEach { record ->
+                        producer.send(record)
+                    }
+                    producer.flush()
                 }
-                producer.flush()
             }
     }
 }

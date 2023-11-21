@@ -42,13 +42,17 @@ fun main() {
                 .map { (perioder, besvarelse) -> perioder + besvarelse }
                 .forEach { hendelser ->
                     if (hendelser.isEmpty()) {
-                        skrivTilTopic(
-                            kafkaKonfigurasjon.topics.eventlogTopic,
-                            hendelseProducer,
-                            dependencies.kafkaKeysClient
-                        )
+                        loggTid("Last og send batch til topic") {
+                            skrivTilTopic(
+                                kafkaKonfigurasjon.topics.eventlogTopic,
+                                hendelseProducer,
+                                dependencies.kafkaKeysClient
+                            )
+                        }
                     } else {
-                        skrivBatchTilDb(hendelser)
+                        loggTid("Skriv batch til db[størrelse=${hendelser.size}]") {
+                            skrivBatchTilDb(hendelser)
+                        }
                     }
                 }
         }

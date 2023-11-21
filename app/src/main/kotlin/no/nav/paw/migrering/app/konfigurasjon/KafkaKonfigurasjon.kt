@@ -40,6 +40,8 @@ val KafkaKonfigurasjon.properties
     get(): Map<String, Any?> = mapOf(
         ConsumerConfig.GROUP_ID_CONFIG to "migrering_v1",
         ProducerConfig.CLIENT_ID_CONFIG to "migrering_v1",
+        ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
+        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 2000,
         StreamsConfig.BOOTSTRAP_SERVERS_CONFIG to serverKonfigurasjon.kafkaBrokers,
     ) + if (serverKonfigurasjon.autentisering.equals("SSL", true)) {
         mapOf(
