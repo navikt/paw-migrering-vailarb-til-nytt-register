@@ -11,6 +11,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.Serdes
 import java.io.Closeable
 import java.time.Duration
+import java.time.Duration.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 fun hendelseProducer(kafkaKonfigurasjon: KafkaKonfigurasjon) = KafkaProducer<Long, Hendelse>(
@@ -40,9 +41,16 @@ fun <T1 : Closeable, T2 : Closeable, T3 : Closeable, R> use(t1: T1, t2: T2, t3: 
 }
 
 fun <K, V, R> KafkaConsumer<K, V>.asSequence(avslutt: AtomicBoolean, mapper: ((V) -> R)): Sequence<List<R>> {
-    return generateSequence {
-        commitSync()
-        if (avslutt.get()) null else poll(Duration.ofMillis(250))
-    }.map { it.map { record -> record.value() } }
+    return generateSequence(0L) { if (avslutt.get()) null else it + 1L }
+        .map { pollNummer ->
+            if (pollNummer == 0L) {
+                ofMinutes(3)
+            } else {
+                ofMillis(250)
+            }
+        }
+        .onEach { commitSync()}
+        .map { tidsabrudd -> poll(tidsabrudd) }
+        .map { records -> records.map { record -> record.value() } }
         .map { batch -> batch.map(mapper) }
 }
