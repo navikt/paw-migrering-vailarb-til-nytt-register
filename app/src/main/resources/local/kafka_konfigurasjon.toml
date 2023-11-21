@@ -1,4 +1,4 @@
-[topics]
+[klientKonfigurasjon]
 gruppeId = "migrering_v1"
 eventlogTopic = "arbeidssoker-hendelseslogg-beta-v1"
 periodeTopic = "arbeidssokerperioder-overforing-beta-v1"

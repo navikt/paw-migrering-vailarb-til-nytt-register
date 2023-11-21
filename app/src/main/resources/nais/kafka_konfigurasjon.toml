@@ -1,6 +1,5 @@
-[streamKonfigurasjon]
-tilstandsDatabase = "tilstand-beta-v1"
-applikasjonsId = "${KAFKA_STREAMS_APPLICATION_ID}"
+[klientKonfigurasjon]
+gruppeId = "paw.arbsok_migrering_v1"
 eventlogTopic = "paw.arbeidssoker-hendelseslogg-beta-v1"
 periodeTopic = "paw.arbeidssokerperioder-beta-v1"
 besvarelseTopic = "paw.arbeidssoker-situasjon-beta-v1"
