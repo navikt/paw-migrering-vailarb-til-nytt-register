@@ -12,10 +12,9 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.streams.StreamsConfig
 import java.util.*
-import kotlin.reflect.KClass
 
 data class KafkaKonfigurasjon(
-    val topics: TopicKonfigurasjon,
+    val klientKonfigurasjon: KlientKonfigurasjon,
     val serverKonfigurasjon: KafkaServerKonfigurasjon,
     val schemaRegistryKonfigurasjon: SchemaRegistryKonfigurasjon
 )
@@ -38,10 +37,10 @@ fun Map<String, Any?>.toProperties(): Properties {
 
 val KafkaKonfigurasjon.properties
     get(): Map<String, Any?> = mapOf(
-        ConsumerConfig.GROUP_ID_CONFIG to "migrering_v1",
-        ProducerConfig.CLIENT_ID_CONFIG to "migrering_v1",
+        ConsumerConfig.GROUP_ID_CONFIG to klientKonfigurasjon.konsumerGruppeId,
+        ProducerConfig.CLIENT_ID_CONFIG to klientKonfigurasjon.produsentKlientId,
         ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
-        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 2000,
+        ConsumerConfig.MAX_POLL_RECORDS_CONFIG to klientKonfigurasjon.maksHentetPerKall,
         StreamsConfig.BOOTSTRAP_SERVERS_CONFIG to serverKonfigurasjon.kafkaBrokers,
     ) + if (serverKonfigurasjon.autentisering.equals("SSL", true)) {
         mapOf(

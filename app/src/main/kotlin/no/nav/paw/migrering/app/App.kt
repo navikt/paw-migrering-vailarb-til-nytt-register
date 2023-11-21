@@ -32,8 +32,8 @@ fun main() {
         besvarelseConsumer(kafkaKonfigurasjon),
         hendelseProducer(kafkaKonfigurasjon)
     ) { periodeConsumer, besvarelseConsumer, hendelseProducer ->
-        periodeConsumer.subscribe(listOf(kafkaKonfigurasjon.topics.periodeTopic))
-        besvarelseConsumer.subscribe(listOf(kafkaKonfigurasjon.topics.situasjonTopic))
+        periodeConsumer.subscribe(listOf(kafkaKonfigurasjon.klientKonfigurasjon.periodeTopic))
+        besvarelseConsumer.subscribe(listOf(kafkaKonfigurasjon.klientKonfigurasjon.situasjonTopic))
         val periodeSekvens: Sequence<List<InternHendelse>> = periodeConsumer.asSequence(avslutt, ::tilPeriode)
         val besvarelseSekvens: Sequence<List<InternHendelse>> = besvarelseConsumer.asSequence(avslutt) { it.tilSituasjonMottat() }
         periodeConsumer.use {
@@ -44,7 +44,7 @@ fun main() {
                     if (hendelser.isEmpty()) {
                         loggTid("Last og send batch til topic") {
                             skrivTilTopic(
-                                kafkaKonfigurasjon.topics.eventlogTopic,
+                                kafkaKonfigurasjon.klientKonfigurasjon.eventlogTopic,
                                 hendelseProducer,
                                 dependencies.kafkaKeysClient
                             )

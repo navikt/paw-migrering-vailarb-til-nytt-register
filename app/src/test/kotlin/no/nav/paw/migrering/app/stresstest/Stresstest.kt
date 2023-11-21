@@ -27,7 +27,7 @@ fun main() {
     val resource = Dummy::class.java.getResource("/arbeidssokerHendelseMeldingStartet.json")
     requireNotNull(resource) { "Finner ikke resurs" }
     val objectMapper = jacksonObjectMapper().findAndRegisterModules()
-    val antallPersoner = 5000
+    val antallPersoner = 1_500_000
     val personer = hentIder(antallPersoner)
     val nåtid = Instant.now()
 
@@ -57,7 +57,7 @@ fun main() {
         )
     }).forEach { periodeHendelse ->
         val record = ProducerRecord(
-            /* topic = */ kafkaConfig.topics.periodeTopic,
+            /* topic = */ kafkaConfig.klientKonfigurasjon.periodeTopic,
             /* partition = */ null,
             /* timestamp = */ Instant.now().epochSecond,
             /* key = */ periodeHendelse.foedselsnummer,
@@ -85,7 +85,7 @@ fun main() {
     }.forEach { besvarelse ->
         besvarelseProducer.send(
             ProducerRecord(
-                /* topic = */ kafkaConfig.topics.situasjonTopic,
+                /* topic = */ kafkaConfig.klientKonfigurasjon.situasjonTopic,
                 /* partition = */ null,
                 /* timestamp = */ besvarelse.registreringsTidspunkt.epochSecond,
                 /* key = */ UUID.randomUUID().toString(),

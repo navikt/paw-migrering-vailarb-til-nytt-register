@@ -29,7 +29,7 @@ fun main() {
 
     periodeMeldinger.forEach { (timestamp, hendelse) ->
         val record = ProducerRecord(
-            /* topic = */ kafkaConfig.topics.periodeTopic,
+            /* topic = */ kafkaConfig.klientKonfigurasjon.periodeTopic,
             /* partition = */ null,
             /* timestamp = */ timestamp.epochSecond,
             /* key = */ hendelse.foedselsnummer,
@@ -50,7 +50,7 @@ fun main() {
 
     besvarelser.map{ besvarelse ->
         besvarelseProducer.send(ProducerRecord(
-            /* topic = */ kafkaConfig.topics.situasjonTopic,
+            /* topic = */ kafkaConfig.klientKonfigurasjon.situasjonTopic,
             /* partition = */ null,
             /* timestamp = */ besvarelse.registreringsTidspunkt.epochSecond,
             /* key = */ UUID.randomUUID().toString(),
