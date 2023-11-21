@@ -1,6 +1,6 @@
 create table Hendelser
 (
-    id bigint GENERATED ALWAYS AS IDENTITY,
+    id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     tidspunkt timestamp NOT NULL,
     hendelse bytea NOT NULL
 );
