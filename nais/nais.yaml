@@ -1,0 +1,34 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: paw-migrering-veilarb-til-nytt-register
+  namespace: paw
+  labels:
+    team: paw
+spec:
+  azure:
+    application:
+      enabled: true
+  image: {{ image }}
+  replicas:
+    min: 1
+    max: 1
+  resources:
+    limits:
+      cpu: 3500m
+      memory: 1000Mi
+    requests:
+      cpu: 400m
+      memory: 200Mi
+  kafka:
+    pool: nav-dev
+  env:
+    - name: KAFKA_KEYS_URL
+      value: http://paw-kafka-key-generator
+    - name: KAFKA_KEYS_SCOPE
+      value: api://dev-gcp.paw.paw-kafka-key-generator/.default
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_14
+        databases:
+          - name: arbeidssokermigrering
