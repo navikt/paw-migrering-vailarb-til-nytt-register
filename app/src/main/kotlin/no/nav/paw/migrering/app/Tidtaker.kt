@@ -4,14 +4,14 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
 
-private val logger = LoggerFactory.getLogger("tidtaker")
+private val tidtakerLogger = LoggerFactory.getLogger("tidtaker")
 fun <R> loggTid(id: String, funksjon: () -> R):R {
     val startet = Instant.now()
     return try {
         funksjon()
     } finally {
         val sluttet = Instant.now()
-        logger.trace("{} tok {}", id, Duration.between(startet, sluttet).abs())
+        tidtakerLogger.trace("{} tok {}", id, Duration.between(startet, sluttet).abs())
     }
 }
 

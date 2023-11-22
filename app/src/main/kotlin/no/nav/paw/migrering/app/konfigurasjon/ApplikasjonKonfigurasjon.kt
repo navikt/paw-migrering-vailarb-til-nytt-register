@@ -2,7 +2,7 @@ package no.nav.paw.migrering.app.konfigurasjon
 
 data class ApplikasjonKonfigurasjon(
     val azureConfig: AzureConfig,
-    val kafkaKeysConfig: ServiceClientConfig
+    val kafkaKeysConfig: KafkaKeysKlientKonfigurasjon
 )
 
 data class AzureConfig(
@@ -10,7 +10,7 @@ data class AzureConfig(
     val tokenEndpointUrl: String
 )
 
-data class ServiceClientConfig(
+data class KafkaKeysKlientKonfigurasjon(
     val url: String,
     val scope: String
 )

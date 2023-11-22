@@ -5,12 +5,13 @@ import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.app.konfigurasjon.*
+import no.nav.paw.migrering.app.serde.ArbeidssoekerEventSerde
+import no.nav.paw.migrering.app.serde.HendelseSerde
 import org.apache.avro.specific.SpecificRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.Serdes
 import java.io.Closeable
-import java.time.Duration
 import java.time.Duration.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -38,6 +39,10 @@ fun <T1 : Closeable, T2 : Closeable, T3 : Closeable, R> use(t1: T1, t2: T2, t3: 
             }
         }
     }
+}
+
+fun <K, V> KafkaConsumer<K, V>.subscribe(topic: String) {
+    subscribe(listOf(topic))
 }
 
 fun <K, V, R> KafkaConsumer<K, V>.asSequence(avslutt: AtomicBoolean, mapper: ((V) -> R)): Sequence<List<R>> {

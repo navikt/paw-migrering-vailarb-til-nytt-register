@@ -1,7 +1,7 @@
 package no.nav.paw.migrering.app.stresstest.validator
 
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse
-import no.nav.paw.migrering.app.HendelseSerde
+import no.nav.paw.migrering.app.serde.HendelseSerde
 import no.nav.paw.migrering.app.konfigurasjon.KafkaKonfigurasjon
 import no.nav.paw.migrering.app.konfigurasjon.medKeySerde
 import no.nav.paw.migrering.app.konfigurasjon.medValueSerde

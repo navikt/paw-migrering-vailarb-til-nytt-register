@@ -27,7 +27,7 @@ fun main() {
     val resource = Dummy::class.java.getResource("/arbeidssokerHendelseMeldingStartet.json")
     requireNotNull(resource) { "Finner ikke resurs" }
     val objectMapper = jacksonObjectMapper().findAndRegisterModules()
-    val antallPersoner = 1_500_000
+    val antallPersoner = 1_500
     val personer = hentIder(antallPersoner)
     val nåtid = Instant.now()
 

@@ -1,4 +1,4 @@
-package no.nav.paw.migrering.app
+package no.nav.paw.migrering.app.serde
 
 import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -7,19 +7,8 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serializer
-private val objectMapper = ObjectMapper()
-    .registerModules(
-        KotlinModule.Builder()
-            .withReflectionCacheSize(512)
-            .configure(KotlinFeature.NullToEmptyCollection, true)
-            .configure(KotlinFeature.NullToEmptyMap, true)
-            .configure(KotlinFeature.NullIsSameAsDefault, false)
-            .configure(KotlinFeature.SingletonSupport, false)
-            .configure(KotlinFeature.StrictNullChecks, false)
-            .build(),
-        com.fasterxml.jackson.datatype.jsr310.JavaTimeModule()
-    )
 
+val arbeidssoekerEventSerde = ArbeidssoekerEventSerde()
 class ArbeidssoekerEventSerde : Serde<ArbeidssokerperiodeHendelseMelding> {
     override fun serializer() = ArbeidssokerperiodeHendelseMeldingSerializer()
     override fun deserializer() = ArbeidssokerperiodeHendelseMeldingDeserializer()
@@ -39,3 +28,16 @@ class ArbeidssokerperiodeHendelseMeldingDeserializer() :
         return objectMapper.readValue(data, ArbeidssokerperiodeHendelseMelding::class.java)
     }
 }
+
+private val objectMapper = ObjectMapper()
+    .registerModules(
+        KotlinModule.Builder()
+            .withReflectionCacheSize(512)
+            .configure(KotlinFeature.NullToEmptyCollection, true)
+            .configure(KotlinFeature.NullToEmptyMap, true)
+            .configure(KotlinFeature.NullIsSameAsDefault, false)
+            .configure(KotlinFeature.SingletonSupport, false)
+            .configure(KotlinFeature.StrictNullChecks, false)
+            .build(),
+        com.fasterxml.jackson.datatype.jsr310.JavaTimeModule()
+    )

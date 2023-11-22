@@ -24,7 +24,6 @@ fun tilPeriode(periode: ArbeidssokerperiodeHendelseMelding): Hendelse =
         no.nav.paw.migrering.Hendelse.STOPPET -> periode.toAvsluttetEvent()
     }
 
-fun ArbeidssokerBesvarelseEvent.tilSituasjonMottat(): SituasjonMottatt = situasjonMottat(this)
 fun tilSituasjonElement(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent): ArbeidssoekersitusjonMedDetaljer? =
     when (arbeidssokerBesvarelseEvent.besvarelse.dinSituasjon.verdi) {
         DinSituasjonSvar.MISTET_JOBBEN -> ArbeidsoekersituasjonBeskrivelse.HAR_BLITT_SAGT_OPP

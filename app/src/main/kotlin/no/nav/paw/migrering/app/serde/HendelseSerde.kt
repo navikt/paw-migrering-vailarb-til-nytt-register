@@ -1,4 +1,4 @@
-package no.nav.paw.migrering.app
+package no.nav.paw.migrering.app.serde
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -9,6 +9,9 @@ import no.nav.paw.arbeidssokerregisteret.serializeToBytes
 import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serializer
+
+val hendelseSerde = HendelseSerde()
+val hendelseTilBytes: (Hendelse) -> ByteArray = { hendelse -> hendelseSerde.serializer().serialize("", hendelse) }
 
 class HendelseSerde : Serde<Hendelse> {
     private val objectMapper = hendelseObjectMapper()
