@@ -2,18 +2,11 @@ package no.nav.paw.migrering.app
 
 import kotlinx.coroutines.runBlocking
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse
-import no.nav.paw.migrering.app.db.HendelserTabell
 import no.nav.paw.migrering.app.db.hentBatch
 import no.nav.paw.migrering.app.db.slett
-import no.nav.paw.migrering.app.serde.HendelseSerde
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.header.internals.RecordHeaders
-import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
 fun skrivTilTopic(topic: String, producer: KafkaProducer<Long, Hendelse>, kafkaKeysClient: KafkaKeysClient) {

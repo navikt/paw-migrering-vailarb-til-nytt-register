@@ -2,7 +2,7 @@
 gruppeId = "paw.arbsok_migrering_v1"
 eventlogTopic = "paw.arbeidssoker-hendelseslogg-beta-v1"
 periodeTopic = "paw.arbeidssokerperioder-beta-v1"
-besvarelseTopic = "paw.arbeidssoker-situasjon-beta-v1"
+situasjonTopic = "paw.arbeidssoker-situasjon-beta-v1"
 
 [serverKonfigurasjon]
 autentisering = "SSL"
