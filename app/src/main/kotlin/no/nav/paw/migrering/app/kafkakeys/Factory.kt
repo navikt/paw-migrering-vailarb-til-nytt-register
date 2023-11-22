@@ -3,8 +3,6 @@ package no.nav.paw.migrering.app.kafkakeys
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.jackson.*
-import no.nav.paw.migrering.app.KafkaKeysClient
-import no.nav.paw.migrering.app.StandardKafkaKeysClient
 import no.nav.paw.migrering.app.TokenService
 import no.nav.paw.migrering.app.konfigurasjon.ApplikasjonKonfigurasjon
 

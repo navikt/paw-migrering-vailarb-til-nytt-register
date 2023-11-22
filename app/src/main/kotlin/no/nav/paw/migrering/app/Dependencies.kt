@@ -1,5 +1,6 @@
 package no.nav.paw.migrering.app
 
+import no.nav.paw.migrering.app.kafkakeys.KafkaKeysClient
 import no.nav.paw.migrering.app.kafkakeys.kafkaKeysKlient
 import no.nav.paw.migrering.app.konfigurasjon.ApplikasjonKonfigurasjon
 import no.nav.paw.migrering.app.konfigurasjon.DatabaseKonfigurasjon

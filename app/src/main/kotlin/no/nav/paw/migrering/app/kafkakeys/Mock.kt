@@ -1,7 +1,5 @@
 package no.nav.paw.migrering.app.kafkakeys
 
-import no.nav.paw.migrering.app.KafkaKeysClient
-import no.nav.paw.migrering.app.KafkaKeysResponse
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicLong

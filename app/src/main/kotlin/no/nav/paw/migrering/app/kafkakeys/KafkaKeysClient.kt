@@ -1,4 +1,4 @@
-package no.nav.paw.migrering.app
+package no.nav.paw.migrering.app.kafkakeys
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body

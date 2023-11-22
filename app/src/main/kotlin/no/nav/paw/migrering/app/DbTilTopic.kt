@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse
 import no.nav.paw.migrering.app.db.hentBatch
 import no.nav.paw.migrering.app.db.slett
+import no.nav.paw.migrering.app.kafkakeys.KafkaKeysClient
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.header.internals.RecordHeaders
