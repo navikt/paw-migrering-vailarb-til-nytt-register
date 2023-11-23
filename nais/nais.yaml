@@ -31,6 +31,12 @@ spec:
         databases:
           - name: arbeidssoekermigrering
   env:
+    - name: OTEL_METRICS_EXPORTER
+      value: "none"
+    - name: OTEL_TRACES_EXPORTER
+      value: "maskert_oltp"
+    - name: OTEL_JAVAAGENT_DEBUG
+      value: "false"
     - name: KAFKA_KEYS_URL
       value: http://paw-kafka-key-generator/api/v1/hentEllerOpprett
     - name: KAFKA_KEYS_SCOPE
