@@ -50,11 +50,11 @@ fun tilSituasjonElement(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent
         ArbeidssoekersitusjonMedDetaljer(
             beskrivelse = beskrivelse,
             detaljer = mapOf(
-                GJELDER_FRA_DATO to arbeidssokerBesvarelseEvent.besvarelse.dinSituasjon.gjelderFraDato.toIso8601(),
-                GJELDER_TIL_DATO to arbeidssokerBesvarelseEvent.besvarelse.dinSituasjon.gjelderTilDato.toIso8601(),
+                GJELDER_FRA_DATO to arbeidssokerBesvarelseEvent.besvarelse?.dinSituasjon?.gjelderFraDato?.toIso8601(),
+                GJELDER_TIL_DATO to arbeidssokerBesvarelseEvent.besvarelse?.dinSituasjon?.gjelderTilDato?.toIso8601(),
                 PROSENT to listOfNotNull(
-                    arbeidssokerBesvarelseEvent.besvarelse.dinSituasjon.tilleggsData.permitteringsProsent,
-                    arbeidssokerBesvarelseEvent.besvarelse.dinSituasjon.tilleggsData.stillingsProsent
+                    arbeidssokerBesvarelseEvent.besvarelse?.dinSituasjon?.tilleggsData?.permitteringsProsent,
+                    arbeidssokerBesvarelseEvent.besvarelse?.dinSituasjon?.tilleggsData?.stillingsProsent
                 ).firstOrNull()
             ).mapNotNull { (key, value) -> value?.let { key to it } }.toMap()
         )
