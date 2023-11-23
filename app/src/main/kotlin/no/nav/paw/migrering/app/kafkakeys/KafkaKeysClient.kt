@@ -30,5 +30,11 @@ class StandardKafkaKeysClient(
             header("Authorization", "Bearer ${getAccessToken()}")
             contentType(ContentType.Application.Json)
             setBody(KafkaKeysRequest(identitetsnummer))
-        }.body<KafkaKeysResponse>()
+        }.let { response ->
+            if (response.status == io.ktor.http.HttpStatusCode.OK) {
+                response.body<KafkaKeysResponse>()
+            } else {
+                throw Exception("Kunne ikke hente kafka key, http_status=${response.status}, melding=${response.body<String>()}")
+            }
+        }
 }
