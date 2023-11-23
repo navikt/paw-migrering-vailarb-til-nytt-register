@@ -1,5 +1,6 @@
 package no.nav.paw.migrering.app.konfigurasjon
 
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClientConfig
 import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig
 import io.confluent.kafka.serializers.KafkaAvroSerializerConfig
 import io.confluent.kafka.serializers.subject.RecordNameStrategy
@@ -24,7 +25,12 @@ fun <T : SpecificRecord> KafkaKonfigurasjon.opprettSerde() = SpecificAvroSerde<T
         mapOf(
             KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG to schemaRegistryKonfigurasjon.url,
             KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS to "true"
-        ),
+        ) + (schemaRegistryKonfigurasjon.bruker?.let {
+            mapOf(
+                SchemaRegistryClientConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
+                SchemaRegistryClientConfig.USER_INFO_CONFIG to "${schemaRegistryKonfigurasjon.bruker}:${schemaRegistryKonfigurasjon.passord}",
+            )
+        } ?: emptyMap()),
         false
     )
 }
