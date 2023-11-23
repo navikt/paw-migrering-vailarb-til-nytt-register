@@ -65,7 +65,12 @@ val KafkaKonfigurasjon.propertiesMedAvroSchemaReg
             KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS to schemaRegistryKonfigurasjon.autoRegistrerSchema,
             KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
             KafkaAvroSerializerConfig.VALUE_SUBJECT_NAME_STRATEGY to RecordNameStrategy::class.java.name
+        ) + (schemaRegistryKonfigurasjon.bruker?.let {
+        mapOf(
+            SchemaRegistryClientConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
+            SchemaRegistryClientConfig.USER_INFO_CONFIG to "${schemaRegistryKonfigurasjon.bruker}:${schemaRegistryKonfigurasjon.passord}",
         )
+    } ?: emptyMap())
 
 fun Map<String, Any?>.medKeySerde(serde: Serde<*>) = this + mapOf(
     ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to serde.serializer()::class.java.name,
