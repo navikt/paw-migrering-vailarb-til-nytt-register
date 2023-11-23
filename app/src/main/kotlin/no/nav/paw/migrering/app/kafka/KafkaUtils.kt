@@ -8,6 +8,7 @@ import no.nav.paw.migrering.app.konfigurasjon.*
 import no.nav.paw.migrering.app.serde.ArbeidssoekerEventSerde
 import no.nav.paw.migrering.app.serde.HendelseSerde
 import org.apache.avro.specific.SpecificRecord
+import org.apache.kafka.clients.consumer.ConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.Serdes
@@ -41,21 +42,21 @@ fun <T1 : Closeable, T2 : Closeable, T3 : Closeable, R> use(t1: T1, t2: T2, t3: 
     }
 }
 
-fun <K, V> KafkaConsumer<K, V>.subscribe(topic: String) {
-    subscribe(listOf(topic))
+fun <K, V> KafkaConsumer<K, V>.subscribe(consumerStatus: ConsumerRebalanceListener, topic: String) {
+    subscribe(listOf(topic), consumerStatus)
 }
 
 fun <K, V, R> KafkaConsumer<K, V>.asSequence(avslutt: AtomicBoolean, mapper: ((V) -> R)): Sequence<List<R>> {
-    return generateSequence(0L) { if (avslutt.get()) null else it + 1L }
-        .map { pollNummer ->
-            if (pollNummer == 0L) {
-                ofMinutes(3)
-            } else {
-                ofMillis(250)
+    val dirty = AtomicBoolean(false)
+    return generateSequence(0) { if (avslutt.get()) null else 1 }
+        .onEach {
+            if (dirty.get()) {
+                commitSync()
+                dirty.set(false)
             }
         }
-        .onEach { commitSync()}
-        .map { tidsabrudd -> poll(tidsabrudd) }
+        .map { _ -> poll(ofMillis(250)) }
+        .onEach { records -> dirty.set(!records.isEmpty) }
         .map { records -> records.map { record -> record.value() } }
         .map { batch -> batch.map(mapper) }
 }

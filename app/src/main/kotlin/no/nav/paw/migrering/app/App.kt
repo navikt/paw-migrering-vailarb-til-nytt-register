@@ -1,14 +1,15 @@
 package no.nav.paw.migrering.app
 
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse
 import no.nav.paw.migrering.app.db.flywayMigrate
 import no.nav.paw.migrering.app.db.skrivBatchTilDb
+import no.nav.paw.migrering.app.kafka.*
 import no.nav.paw.migrering.app.konfigurasjon.*
-import no.nav.paw.migrering.app.serde.hendelseSerde
 import no.nav.paw.migrering.app.serde.hendelseTilBytes
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse as InternHendelse
+import java.util.concurrent.atomic.AtomicLong
 
 val logger = LoggerFactory.getLogger("migrering")!!
 
@@ -30,25 +31,50 @@ fun main() {
         besvarelseConsumer(kafkaKonfigurasjon),
         hendelseProducer(kafkaKonfigurasjon)
     ) { periodeConsumer, besvarelseConsumer, hendelseProducer ->
-        periodeConsumer.subscribe(kafkaKonfigurasjon.klientKonfigurasjon.periodeTopic)
-        besvarelseConsumer.subscribe(kafkaKonfigurasjon.klientKonfigurasjon.situasjonTopic)
-        val periodeSekvens: Sequence<List<InternHendelse>> = periodeConsumer.asSequence(avslutt, ::tilPeriode)
-        val besvarelseSekvens: Sequence<List<InternHendelse>> = besvarelseConsumer.asSequence(avslutt, ::situasjonMottat)
-        periodeSekvens
-            .zip(besvarelseSekvens)
-            .map { (perioder, besvarelse) -> perioder + besvarelse }
-            .forEach { hendelser ->
-                if (hendelser.isEmpty()) {
-                    loggTid("Last og send batch til topic") {
-                        skrivTilTopic(
-                            kafkaKonfigurasjon.klientKonfigurasjon.eventlogTopic,
-                            hendelseProducer,
-                            dependencies.kafkaKeysClient
-                        )
-                    }
+        val consumerStatus = StatusConsumerRebalanceListener(
+            kafkaKonfigurasjon.klientKonfigurasjon.periodeTopic,
+            kafkaKonfigurasjon.klientKonfigurasjon.situasjonTopic
+        )
+        periodeConsumer.subscribe(consumerStatus, kafkaKonfigurasjon.klientKonfigurasjon.periodeTopic)
+        besvarelseConsumer.subscribe(consumerStatus, kafkaKonfigurasjon.klientKonfigurasjon.situasjonTopic)
+
+        val perioder: Sequence<Pair<Boolean, List<Hendelse>>> = periodeConsumer.asSequence(avslutt, ::tilPeriode)
+            .map { periodeBatch -> consumerStatus.erKlar(periodeConsumer.subscription()) to periodeBatch }
+        val situasjoner: Sequence<Pair<Boolean, List<Hendelse>>> = besvarelseConsumer.asSequence(avslutt, ::situasjonMottat)
+            .map { situasjonBatch -> consumerStatus.erKlar(besvarelseConsumer.subscription()) to situasjonBatch }
+
+        val tomBatchTeller = AtomicLong(0)
+        perioder.zip(situasjoner)
+            .map { (perioder, situasjoner) -> (perioder.first && situasjoner.first) to (perioder.second + situasjoner.second) }
+            .forEach { (erKlar, hendelser) ->
+                //Litt deffensiv kode for å unngå at vi begynner å sende data til topic før vi er sikre på vi har konsumeret alle hendelser fra topics
+                //Feks ved rebalansering vil vi få en tom batch selv om consumeren ligger langt bak,
+                // "erKlar" skal indikere om alle topics aktivt konsumerer hendelser
+                val antallTommeBatcher = if (hendelser.isEmpty()) {
+                    tomBatchTeller.incrementAndGet()
                 } else {
-                    loggTid("Skriv batch til db[størrelse=${hendelser.size}]") {
-                        skrivBatchTilDb(serializer = hendelseTilBytes, batch = hendelser)
+                    tomBatchTeller.set(0)
+                    0L
+                }
+                when {
+                    erKlar && antallTommeBatcher > 3L -> {
+                        loggTid("Last og send batch til topic") {
+                            skrivTilTopic(
+                                kafkaKonfigurasjon.klientKonfigurasjon.eventlogTopic,
+                                hendelseProducer,
+                                dependencies.kafkaKeysClient
+                            )
+                        }
+                    }
+                    hendelser.isNotEmpty() -> {
+                        loggTid("Skriv batch til db[størrelse=${hendelser.size}]") {
+                            skrivBatchTilDb(serializer = hendelseTilBytes, batch = hendelser)
+                        }
+                    }
+                    else -> {
+                        if (tomBatchTeller.get() % 30 == 0L) {
+                            logger.info("Venter på at alle topics skal være klare")
+                        }
                     }
                 }
             }
