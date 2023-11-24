@@ -43,5 +43,7 @@ spec:
       value: api://dev-gcp.paw.paw-kafka-key-generator/.default
   accessPolicy:
     outbound:
+      external:
+        - host: pdl-api.dev-fss-pub.nais.io
       rules:
         - application: paw-kafka-key-generator
