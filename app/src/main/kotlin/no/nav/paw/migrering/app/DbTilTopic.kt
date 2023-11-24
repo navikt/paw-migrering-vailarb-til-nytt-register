@@ -31,7 +31,7 @@ fun skrivTilTopic(topic: String, producer: KafkaProducer<Long, Hendelse>, kafkaK
                         RecordHeaders()
                     )
                 }.also { batch ->
-                    loggTid("send batch til topic") {
+                    loggTid("send batch til topic[antall=${batch.size}]") {
                         batch.map { record ->
                             producer.send(record)
                         }.let { futures ->
