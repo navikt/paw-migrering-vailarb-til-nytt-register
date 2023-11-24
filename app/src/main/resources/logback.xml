@@ -10,12 +10,15 @@
         </encoder>
     </appender>
 
-    <logger name="org.apache.kafka" level="INFO" />
-    <logger name="io.confluent" level="INFO" />
-    <logger name="no.nav" level="INFO" />
-    <logger name="tidtaker" level="INFO" />
-
     <root level="INFO">
         <appender-ref ref="STDOUT_JSON" />
     </root>
+
+    <logger name="org.apache.kafka" level="INFO" />
+    <logger name="io.confluent" level="INFO" />
+    <logger name="no.nav" level="INFO" />
+    <logger name="tidtaker" level="TRACE" />
+
+
+
 </configuration>
