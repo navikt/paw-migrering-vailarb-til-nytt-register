@@ -17,7 +17,7 @@
     <logger name="org.apache.kafka" level="INFO" />
     <logger name="io.confluent" level="INFO" />
     <logger name="no.nav" level="INFO" />
-    <logger name="tidtaker" level="TRACE" />
+    <logger name="tidtaker" level="INFO" />
 
 
 
