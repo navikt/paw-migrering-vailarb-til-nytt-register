@@ -1,6 +1,8 @@
 package no.nav.paw.migrering.app
 
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse
+import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.Bruker
+import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.BrukerType
 import no.nav.paw.migrering.app.db.flywayMigrate
 import no.nav.paw.migrering.app.db.skrivBatchTilDb
 import no.nav.paw.migrering.app.kafka.*
@@ -37,14 +39,21 @@ fun main() {
         )
         periodeConsumer.subscribe(consumerStatus, kafkaKonfigurasjon.klientKonfigurasjon.periodeTopic)
         besvarelseConsumer.subscribe(consumerStatus, kafkaKonfigurasjon.klientKonfigurasjon.situasjonTopic)
-
-        val perioder: Sequence<Pair<Boolean, List<Hendelse>>> = periodeConsumer.asSequence(avslutt, ::tilPeriode)
-            .map { periodeBatch -> consumerStatus.erKlar(periodeConsumer.subscription()) to periodeBatch }
-        val situasjoner: Sequence<Pair<Boolean, List<Hendelse>>> = besvarelseConsumer.asSequence(avslutt, ::situasjonMottat)
-            .map { situasjonBatch -> consumerStatus.erKlar(besvarelseConsumer.subscription()) to situasjonBatch }
+        val utfoertAv = Bruker(
+            type = BrukerType.SYSTEM,
+            id = applikasjonKonfigurasjon.applicationName
+        )
+        val perioder: Sequence<Pair<Boolean, List<Hendelse>>> = periodeConsumer.asSequence(
+            avslutt = avslutt,
+            mapper = (::tilPeriode)(utfoertAv)
+        ).map { periodeBatch -> consumerStatus.erKlar(periodeConsumer.subscription()) to periodeBatch }
+        val opplysninger: Sequence<Pair<Boolean, List<Hendelse>>> = besvarelseConsumer.asSequence(
+            avslutt = avslutt,
+            mapper = (::situasjonMottat)(utfoertAv)
+        ).map { situasjonBatch -> consumerStatus.erKlar(besvarelseConsumer.subscription()) to situasjonBatch }
 
         val tomBatchTeller = AtomicLong(0)
-        perioder.zip(situasjoner)
+        perioder.zip(opplysninger)
             .map { (perioder, situasjoner) -> (perioder.first && situasjoner.first) to (perioder.second + situasjoner.second) }
             .forEach { (erKlar, hendelser) ->
                 //Litt deffensiv kode for å unngå at vi begynner å sende data til topic før vi er sikre på vi har konsumeret alle hendelser fra topics
@@ -66,11 +75,13 @@ fun main() {
                             )
                         }
                     }
+
                     hendelser.isNotEmpty() -> {
                         loggTid("Skriv batch til db[størrelse=${hendelser.size}]") {
                             skrivBatchTilDb(serializer = hendelseTilBytes, batch = hendelser)
                         }
                     }
+
                     else -> {
                         if (tomBatchTeller.get() % 30 == 0L) {
                             logger.info("Venter på at alle topics skal være klare")

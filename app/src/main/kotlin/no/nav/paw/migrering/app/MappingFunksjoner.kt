@@ -17,10 +17,10 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 
 
-fun tilPeriode(periode: ArbeidssokerperiodeHendelseMelding): Hendelse =
+fun tilPeriode(bruker: Bruker, periode: ArbeidssokerperiodeHendelseMelding): Hendelse =
     when (periode.hendelse) {
-        no.nav.paw.migrering.Hendelse.STARTET -> periode.toStartEvent()
-        no.nav.paw.migrering.Hendelse.STOPPET -> periode.toAvsluttetEvent()
+        no.nav.paw.migrering.Hendelse.STARTET -> periode.toStartEvent(bruker)
+        no.nav.paw.migrering.Hendelse.STOPPET -> periode.toAvsluttetEvent(bruker)
     }
 
 fun tilSituasjonElement(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent): ArbeidssoekersitusjonMedDetaljer? =
@@ -92,20 +92,17 @@ fun arbeidserfaring(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
         }
     )
 
-fun situasjonMottat(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
+fun situasjonMottat(utfoertAv: Bruker, arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
     SituasjonMottatt(
         hendelseId = UUID.randomUUID(),
         identitetsnummer = arbeidssokerBesvarelseEvent.foedselsnummer,
         situasjon = Situasjon(
             id = UUID.randomUUID(),
             metadata = Metadata(
-                arbeidssokerBesvarelseEvent.registreringsTidspunkt.truncatedTo(ChronoUnit.MILLIS),
-                Bruker(
-                    BrukerType.SLUTTBRUKER,
-                    arbeidssokerBesvarelseEvent.foedselsnummer
-                ),
-                "veilarbregistrering",
-                "overføring"
+                tidspunkt = arbeidssokerBesvarelseEvent.registreringsTidspunkt.truncatedTo(ChronoUnit.MILLIS),
+                utfoertAv = utfoertAv,
+                kilde = "veilarbregistrering",
+                aarsak = "overføring"
             ),
             utdanning = Utdanning(
                 utdanningsnivaa = utdanningsnivaa(arbeidssokerBesvarelseEvent),

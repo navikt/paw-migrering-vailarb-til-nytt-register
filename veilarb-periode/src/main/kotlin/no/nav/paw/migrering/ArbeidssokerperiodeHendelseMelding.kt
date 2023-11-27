@@ -12,22 +12,22 @@ data class ArbeidssokerperiodeHendelseMelding(
     val foedselsnummer: String,
     val tidspunkt: Instant
 ) {
-    fun toStartEvent(): Startet = Startet (
+    fun toStartEvent(utfoertAv: Bruker): Startet = Startet (
         identitetsnummer = foedselsnummer,
         metadata = Metadata(
             tidspunkt = tidspunkt.truncatedTo(ChronoUnit.MILLIS),
-            utfoertAv = Bruker(BrukerType.UDEFINERT, foedselsnummer),
+            utfoertAv = utfoertAv,
             kilde = "veilarbregistrering",
             aarsak = "overføring"
         ),
         hendelseId = UUID.randomUUID()
     )
 
-    fun toAvsluttetEvent(): Avsluttet = Avsluttet(
+    fun toAvsluttetEvent(utfoertAv: Bruker): Avsluttet = Avsluttet(
         identitetsnummer = foedselsnummer,
         metadata = Metadata(
             tidspunkt = tidspunkt.truncatedTo(ChronoUnit.MILLIS),
-            utfoertAv = Bruker(BrukerType.SYSTEM, foedselsnummer),
+            utfoertAv = utfoertAv,
             kilde = "veilarbregistrering",
             aarsak = "overføring"
         ),
