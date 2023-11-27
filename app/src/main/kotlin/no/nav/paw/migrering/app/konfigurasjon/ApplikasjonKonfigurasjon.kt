@@ -1,6 +1,7 @@
 package no.nav.paw.migrering.app.konfigurasjon
 
 data class ApplikasjonKonfigurasjon(
+    val applicationName : String,
     val azureConfig: AzureConfig,
     val kafkaKeysConfig: KafkaKeysKlientKonfigurasjon
 )

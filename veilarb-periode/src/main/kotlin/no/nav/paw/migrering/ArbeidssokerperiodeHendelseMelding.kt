@@ -27,7 +27,7 @@ data class ArbeidssokerperiodeHendelseMelding(
         identitetsnummer = foedselsnummer,
         metadata = Metadata(
             tidspunkt = tidspunkt.truncatedTo(ChronoUnit.MILLIS),
-            utfoertAv = Bruker(BrukerType.UDEFINERT, foedselsnummer),
+            utfoertAv = Bruker(BrukerType.SYSTEM, foedselsnummer),
             kilde = "veilarbregistrering",
             aarsak = "overføring"
         ),
