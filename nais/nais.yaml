@@ -47,3 +47,12 @@ spec:
         - host: pdl-api.dev-fss-pub.nais.io
       rules:
         - application: paw-kafka-key-generator
+  liveness:
+    path: /isAlive
+    initialDelay: 10
+  readiness:
+    path: /isReady
+    initialDelay: 10
+  prometheus:
+    enabled: true
+    path: /metrics
