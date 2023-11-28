@@ -38,8 +38,12 @@ class StatusConsumerRebalanceListener(vararg topics: String): ConsumerRebalanceL
             }
     }
 
-    fun erKlar(topics: Collection<String>): Boolean {
+    fun isReady(topics: Collection<String>): Boolean {
         return topics.all { map[it]?.get() == klar }
+    }
+
+    fun isReady(): Boolean {
+        return map.all { it.value.get() == klar }
     }
 
 }

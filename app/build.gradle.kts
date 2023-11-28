@@ -50,6 +50,9 @@ dependencies {
     implementation("io.confluent:kafka-avro-serializer:7.4.0")
     implementation("io.confluent:kafka-streams-avro-serde:7.4.0")
     implementation("org.apache.avro:avro:1.11.0")
+    implementation("io.ktor:ktor-server-core-jvm:2.3.5")
+    implementation("io.ktor:ktor-server-metrics-micrometer-jvm:2.3.5")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.6.3")
 
     testImplementation("io.kotest:kotest-runner-junit5-jvm:4.6.0")
     testImplementation("org.apache.kafka:kafka-streams-test-utils:3.5.1")

@@ -9,6 +9,7 @@ import no.nav.paw.migrering.app.db.flywayMigrate
 import no.nav.paw.migrering.app.db.skrivBatchTilDb
 import no.nav.paw.migrering.app.kafka.*
 import no.nav.paw.migrering.app.konfigurasjon.*
+import no.nav.paw.migrering.app.ktor.initKtor
 import no.nav.paw.migrering.app.serde.hendelseTilBytes
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.LoggerFactory
@@ -30,16 +31,20 @@ fun main() {
         logger.info("Avslutter migrering")
         avslutt.set(true)
     })
-
+    val consumerStatus = StatusConsumerRebalanceListener(
+        kafkaKonfigurasjon.klientKonfigurasjon.periodeTopic,
+        kafkaKonfigurasjon.klientKonfigurasjon.situasjonTopic
+    )
+    val ktorEngine = initKtor(
+        prometheusMeterRegistry = prometheusMeterRegistry,
+        statusConsumerRebalanceListener = consumerStatus
+    )
+    ktorEngine.start(wait = false)
     use(
         periodeConsumer(kafkaKonfigurasjon),
         besvarelseConsumer(kafkaKonfigurasjon),
         hendelseProducer(kafkaKonfigurasjon)
     ) { periodeConsumer, besvarelseConsumer, hendelseProducer ->
-        val consumerStatus = StatusConsumerRebalanceListener(
-            kafkaKonfigurasjon.klientKonfigurasjon.periodeTopic,
-            kafkaKonfigurasjon.klientKonfigurasjon.situasjonTopic
-        )
         periodeConsumer.subscribe(consumerStatus, kafkaKonfigurasjon.klientKonfigurasjon.periodeTopic)
         besvarelseConsumer.subscribe(consumerStatus, kafkaKonfigurasjon.klientKonfigurasjon.situasjonTopic)
         val utfoertAv = Bruker(
@@ -49,11 +54,11 @@ fun main() {
         val perioder: Sequence<Pair<Boolean, List<Hendelse>>> = periodeConsumer.asSequence(
             avslutt = avslutt,
             mapper = (::tilPeriode)(utfoertAv)
-        ).map { periodeBatch -> consumerStatus.erKlar(periodeConsumer.subscription()) to periodeBatch }
+        ).map { periodeBatch -> consumerStatus.isReady(periodeConsumer.subscription()) to periodeBatch }
         val opplysninger: Sequence<Pair<Boolean, List<Hendelse>>> = besvarelseConsumer.asSequence(
             avslutt = avslutt,
             mapper = (::situasjonMottat)(utfoertAv)
-        ).map { situasjonBatch -> consumerStatus.erKlar(besvarelseConsumer.subscription()) to situasjonBatch }
+        ).map { situasjonBatch -> consumerStatus.isReady(besvarelseConsumer.subscription()) to situasjonBatch }
 
         val tomBatchTeller = AtomicLong(0)
         perioder.zip(opplysninger)
