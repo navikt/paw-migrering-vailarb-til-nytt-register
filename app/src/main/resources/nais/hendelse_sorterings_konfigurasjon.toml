@@ -1,3 +1,0 @@
-interval = "PT30M"
-forsinkelse = "PT4H"
-tilstandsDbNavn = "sortering-tilstand-v1"
