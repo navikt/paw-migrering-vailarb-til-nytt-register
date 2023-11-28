@@ -1,5 +1,7 @@
 package no.nav.paw.migrering.app
 
+import io.micrometer.prometheus.PrometheusConfig
+import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse
 import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.Bruker
 import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.BrukerType
@@ -22,6 +24,7 @@ fun main() {
     )
     flywayMigrate(dependencies.dataSource)
     Database.connect(dependencies.dataSource)
+    val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val avslutt = AtomicBoolean(false)
     Runtime.getRuntime().addShutdownHook(Thread {
         logger.info("Avslutter migrering")
@@ -65,26 +68,20 @@ fun main() {
                     tomBatchTeller.set(0)
                     0L
                 }
-                when {
-                    erKlar && antallTommeBatcher > 3L -> {
-                        loggTid("Last og send batch til topic") {
-                            skrivTilTopic(
-                                kafkaKonfigurasjon.klientKonfigurasjon.eventlogTopic,
-                                hendelseProducer,
-                                dependencies.kafkaKeysClient
-                            )
-                        }
-                    }
+                with(prometheusMeterRegistry) {
+                    when {
+                        erKlar && antallTommeBatcher > 3L -> skrivTilTopic(
+                            kafkaKonfigurasjon.klientKonfigurasjon.eventlogTopic,
+                            hendelseProducer,
+                            dependencies.kafkaKeysClient
+                        )
 
-                    hendelser.isNotEmpty() -> {
-                        loggTid("Skriv batch til db[størrelse=${hendelser.size}]") {
-                            skrivBatchTilDb(serializer = hendelseTilBytes, batch = hendelser)
-                        }
-                    }
+                        hendelser.isNotEmpty() -> skrivBatchTilDb(serializer = hendelseTilBytes, batch = hendelser)
 
-                    else -> {
-                        if (tomBatchTeller.get() % 30 == 0L) {
-                            logger.info("Venter på at alle topics skal være klare")
+                        else -> {
+                            if (tomBatchTeller.get() % 30 == 0L) {
+                                logger.info("Venter på at alle topics skal være klare")
+                            }
                         }
                     }
                 }
