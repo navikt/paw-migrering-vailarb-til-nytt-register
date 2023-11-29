@@ -1,9 +1,12 @@
 package no.nav.paw.migrering.app.utils
 
+import org.slf4j.Logger
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 
-interface CloseableSequence<V>: Sequence<V>, Closeable
+interface CloseableSequence<V>: Sequence<V>, Closeable {
+    fun closeJustLogOnError()
+}
 
 fun <V> closeableSequenceOf(iterable: Iterable<V>): CloseableSequence<V> {
     return object : CloseableSequence<V> {
@@ -21,6 +24,10 @@ fun <V> closeableSequenceOf(iterable: Iterable<V>): CloseableSequence<V> {
         }
         override fun close() {
             isClosed.set(true)
+        }
+
+        override fun closeJustLogOnError() {
+            close()//close cant really fail
         }
     }
 }

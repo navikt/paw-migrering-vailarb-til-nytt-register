@@ -2,11 +2,12 @@ package no.nav.paw.migrering.app.utils
 
 import no.nav.paw.migrering.app.kafka.StatusConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 
 fun <K, V> consumerSequence(
-    consumerProperties: Map<String, Any>,
+    consumerProperties: Map<String, Any?>,
     pollTimeout: Duration = Duration.ofMillis(250),
     commitBeforeHasNext: Boolean = true,
     commitBeforePoll: Boolean = true,
@@ -28,6 +29,7 @@ class ConsumerBackedCloseableSequence<K, V>(
     private val commitBeforeHasNext: Boolean = true,
     private val commitBeforePoll: Boolean = true
 ) : CloseableSequence<List<Pair<K, V>>> {
+    private val logger = LoggerFactory.getLogger(this::class.java)
     private val isClosed = AtomicBoolean(false)
     override fun iterator(): Iterator<List<Pair<K, V>>> {
         return object : Iterator<List<Pair<K, V>>> {
@@ -48,6 +50,14 @@ class ConsumerBackedCloseableSequence<K, V>(
     override fun close() {
         isClosed.set(true)
         consumer.close()
+    }
+
+    override fun closeJustLogOnError() {
+        try {
+            close()
+        } catch (e: Exception) {
+            logger.warn("Error closing consumer", e)
+        }
     }
 
 }
