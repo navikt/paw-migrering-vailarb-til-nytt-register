@@ -1,16 +1,24 @@
 package no.nav.paw.migrering.app.utils
 
+import no.nav.paw.migrering.app.kafka.StatusConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 
 fun <K, V> consumerSequence(
-    kafkaProperties: Map<String, Any>,
+    consumerProperties: Map<String, Any>,
     pollTimeout: Duration = Duration.ofMillis(250),
     commitBeforeHasNext: Boolean = true,
-    commitBeforePoll: Boolean = true
+    commitBeforePoll: Boolean = true,
+    subscribeTo: List<String>,
+    rebalanceListener: StatusConsumerRebalanceListener? = null
 ): ConsumerBackedCloseableSequence<K, V> {
-    val consumer = KafkaConsumer<K, V>(kafkaProperties)
+    val consumer = KafkaConsumer<K, V>(consumerProperties)
+    if (rebalanceListener != null) {
+        consumer.subscribe(subscribeTo, rebalanceListener)
+    } else {
+        consumer.subscribe(subscribeTo)
+    }
     return ConsumerBackedCloseableSequence(consumer, pollTimeout, commitBeforeHasNext, commitBeforePoll)
 }
 
@@ -19,7 +27,7 @@ class ConsumerBackedCloseableSequence<K, V>(
     private val pollTimeout: Duration = Duration.ofMillis(250),
     private val commitBeforeHasNext: Boolean = true,
     private val commitBeforePoll: Boolean = true
-): CloseableSequence<List<Pair<K, V>>> {
+) : CloseableSequence<List<Pair<K, V>>> {
     private val isClosed = AtomicBoolean(false)
     override fun iterator(): Iterator<List<Pair<K, V>>> {
         return object : Iterator<List<Pair<K, V>>> {
