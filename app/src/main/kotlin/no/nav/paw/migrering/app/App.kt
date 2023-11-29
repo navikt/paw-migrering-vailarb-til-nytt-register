@@ -63,19 +63,11 @@ fun main() {
         val tomBatchTeller = AtomicLong(0)
         perioder.zip(opplysninger)
             .map { (perioder, situasjoner) -> (perioder.first && situasjoner.first) to (perioder.second + situasjoner.second) }
+            .nLimitFilter(numberOfConsecutiveFalseBeforeForward = 3) { (_, hendelser) -> hendelser.isNotEmpty() }
             .forEach { (erKlar, hendelser) ->
-                //Litt deffensiv kode for å unngå at vi begynner å sende data til topic før vi er sikre på vi har konsumeret alle hendelser fra topics
-                //Feks ved rebalansering vil vi få en tom batch selv om consumeren ligger langt bak,
-                // "erKlar" skal indikere om alle topics aktivt konsumerer hendelser
-                val antallTommeBatcher = if (hendelser.isEmpty()) {
-                    tomBatchTeller.incrementAndGet()
-                } else {
-                    tomBatchTeller.set(0)
-                    0L
-                }
                 with(prometheusMeterRegistry) {
                     when {
-                        erKlar && antallTommeBatcher > 3L -> skrivTilTopic(
+                        erKlar && hendelser.isEmpty() -> skrivTilTopic(
                             kafkaKonfigurasjon.klientKonfigurasjon.eventlogTopic,
                             hendelseProducer,
                             dependencies.kafkaKeysClient
