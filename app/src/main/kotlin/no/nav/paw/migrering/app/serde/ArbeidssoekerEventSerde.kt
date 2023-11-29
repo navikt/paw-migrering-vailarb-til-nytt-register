@@ -8,7 +8,6 @@ import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serializer
 
-val arbeidssoekerEventSerde = ArbeidssoekerEventSerde()
 class ArbeidssoekerEventSerde : Serde<ArbeidssokerperiodeHendelseMelding> {
     override fun serializer() = ArbeidssokerperiodeHendelseMeldingSerializer()
     override fun deserializer() = ArbeidssokerperiodeHendelseMeldingDeserializer()
