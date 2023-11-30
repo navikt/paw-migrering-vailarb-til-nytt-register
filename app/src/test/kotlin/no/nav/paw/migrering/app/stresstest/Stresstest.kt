@@ -24,7 +24,7 @@ fun main() {
     val kafkaConfig = lastKonfigurasjon<KafkaKonfigurasjon>("kafka_konfigurasjon.toml")
     val kafkaPeriodeProducer = KafkaProducer<String, String>(kafkaPeriodeProducerProperties + kafkaConfig.properties)
 
-    val resource = Dummy::class.java.getResource("/arbeidssokerHendelseMeldingStartet.json")
+    val resource = AppTest::class.java.getResource("/arbeidssokerHendelseMeldingStartet.json")
     requireNotNull(resource) { "Finner ikke resurs" }
     val objectMapper = jacksonObjectMapper().findAndRegisterModules()
     val antallPersoner = 1_500

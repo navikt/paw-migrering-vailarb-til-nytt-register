@@ -4,7 +4,7 @@ import no.nav.paw.arbeidssokerregisteret.GJELDER_FRA_DATO
 import no.nav.paw.arbeidssokerregisteret.GJELDER_TIL_DATO
 import no.nav.paw.arbeidssokerregisteret.PROSENT
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse
-import no.nav.paw.arbeidssokerregisteret.intern.v1.SituasjonMottatt
+import no.nav.paw.arbeidssokerregisteret.intern.v1.OpplysningerOmArbeidssoekerMottatt
 import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.*
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.besvarelse.DinSituasjonSvar
@@ -23,30 +23,30 @@ fun tilPeriode(bruker: Bruker, periode: ArbeidssokerperiodeHendelseMelding): Hen
         no.nav.paw.migrering.Hendelse.STOPPET -> periode.toAvsluttetEvent(bruker)
     }
 
-fun tilSituasjonElement(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent): ArbeidssoekersitusjonMedDetaljer? =
+fun tilSituasjonElement(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent): JobbsituasjonMedDetaljer? =
     when (arbeidssokerBesvarelseEvent.besvarelse.dinSituasjon.verdi) {
-        DinSituasjonSvar.MISTET_JOBBEN -> ArbeidsoekersituasjonBeskrivelse.HAR_BLITT_SAGT_OPP
-        DinSituasjonSvar.OPPSIGELSE -> ArbeidsoekersituasjonBeskrivelse.HAR_SAGT_OPP
-        DinSituasjonSvar.HAR_SAGT_OPP -> ArbeidsoekersituasjonBeskrivelse.HAR_SAGT_OPP
-        DinSituasjonSvar.SAGT_OPP -> ArbeidsoekersituasjonBeskrivelse.HAR_BLITT_SAGT_OPP
-        DinSituasjonSvar.ALDRI_HATT_JOBB -> ArbeidsoekersituasjonBeskrivelse.ALDRI_HATT_JOBB
-        DinSituasjonSvar.VIL_BYTTE_JOBB -> ArbeidsoekersituasjonBeskrivelse.VIL_BYTTE_JOBB
-        DinSituasjonSvar.ER_PERMITTERT -> ArbeidsoekersituasjonBeskrivelse.ER_PERMITTERT
-        DinSituasjonSvar.USIKKER_JOBBSITUASJON -> ArbeidsoekersituasjonBeskrivelse.USIKKER_JOBBSITUASJON
-        DinSituasjonSvar.JOBB_OVER_2_AAR -> ArbeidsoekersituasjonBeskrivelse.IKKE_VAERT_I_JOBB_SISTE_2_AAR
-        DinSituasjonSvar.VIL_FORTSETTE_I_JOBB -> ArbeidsoekersituasjonBeskrivelse.ANNET
-        DinSituasjonSvar.AKKURAT_FULLFORT_UTDANNING -> ArbeidsoekersituasjonBeskrivelse.AKKURAT_FULLFORT_UTDANNING
-        DinSituasjonSvar.DELTIDSJOBB_VIL_MER -> ArbeidsoekersituasjonBeskrivelse.DELTIDSJOBB_VIL_MER
-        DinSituasjonSvar.ENDRET_PERMITTERINGSPROSENT -> ArbeidsoekersituasjonBeskrivelse.ER_PERMITTERT
+        DinSituasjonSvar.MISTET_JOBBEN -> JobbsituasjonBeskrivelse.HAR_BLITT_SAGT_OPP
+        DinSituasjonSvar.OPPSIGELSE -> JobbsituasjonBeskrivelse.HAR_SAGT_OPP
+        DinSituasjonSvar.HAR_SAGT_OPP -> JobbsituasjonBeskrivelse.HAR_SAGT_OPP
+        DinSituasjonSvar.SAGT_OPP -> JobbsituasjonBeskrivelse.HAR_BLITT_SAGT_OPP
+        DinSituasjonSvar.ALDRI_HATT_JOBB -> JobbsituasjonBeskrivelse.ALDRI_HATT_JOBB
+        DinSituasjonSvar.VIL_BYTTE_JOBB -> JobbsituasjonBeskrivelse.VIL_BYTTE_JOBB
+        DinSituasjonSvar.ER_PERMITTERT -> JobbsituasjonBeskrivelse.ER_PERMITTERT
+        DinSituasjonSvar.USIKKER_JOBBSITUASJON -> JobbsituasjonBeskrivelse.USIKKER_JOBBSITUASJON
+        DinSituasjonSvar.JOBB_OVER_2_AAR -> JobbsituasjonBeskrivelse.IKKE_VAERT_I_JOBB_SISTE_2_AAR
+        DinSituasjonSvar.VIL_FORTSETTE_I_JOBB -> JobbsituasjonBeskrivelse.ANNET
+        DinSituasjonSvar.AKKURAT_FULLFORT_UTDANNING -> JobbsituasjonBeskrivelse.AKKURAT_FULLFORT_UTDANNING
+        DinSituasjonSvar.DELTIDSJOBB_VIL_MER -> JobbsituasjonBeskrivelse.DELTIDSJOBB_VIL_MER
+        DinSituasjonSvar.ENDRET_PERMITTERINGSPROSENT -> JobbsituasjonBeskrivelse.ER_PERMITTERT
         DinSituasjonSvar.TILBAKE_TIL_JOBB -> null
-        DinSituasjonSvar.NY_JOBB -> ArbeidsoekersituasjonBeskrivelse.NY_JOBB
-        DinSituasjonSvar.MIDLERTIDIG_JOBB -> ArbeidsoekersituasjonBeskrivelse.MIDLERTIDIG_JOBB
-        DinSituasjonSvar.KONKURS -> ArbeidsoekersituasjonBeskrivelse.KONKURS
-        DinSituasjonSvar.UAVKLART -> ArbeidsoekersituasjonBeskrivelse.USIKKER_JOBBSITUASJON
-        DinSituasjonSvar.ANNET -> ArbeidsoekersituasjonBeskrivelse.ANNET
+        DinSituasjonSvar.NY_JOBB -> JobbsituasjonBeskrivelse.NY_JOBB
+        DinSituasjonSvar.MIDLERTIDIG_JOBB -> JobbsituasjonBeskrivelse.MIDLERTIDIG_JOBB
+        DinSituasjonSvar.KONKURS -> JobbsituasjonBeskrivelse.KONKURS
+        DinSituasjonSvar.UAVKLART -> JobbsituasjonBeskrivelse.USIKKER_JOBBSITUASJON
+        DinSituasjonSvar.ANNET -> JobbsituasjonBeskrivelse.ANNET
         null -> null
     }?.let { beskrivelse ->
-        ArbeidssoekersitusjonMedDetaljer(
+        JobbsituasjonMedDetaljer(
             beskrivelse = beskrivelse,
             detaljer = mapOf(
                 GJELDER_FRA_DATO to arbeidssokerBesvarelseEvent.besvarelse?.dinSituasjon?.gjelderFraDato?.toIso8601(),
@@ -93,10 +93,10 @@ fun arbeidserfaring(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
     )
 
 fun situasjonMottat(utfoertAv: Bruker, arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
-    SituasjonMottatt(
+    OpplysningerOmArbeidssoekerMottatt(
         hendelseId = UUID.randomUUID(),
         identitetsnummer = arbeidssokerBesvarelseEvent.foedselsnummer,
-        situasjon = Situasjon(
+        opplysningerOmArbeidssoeker = OpplysningerOmArbeidssoeker(
             id = UUID.randomUUID(),
             metadata = Metadata(
                 tidspunkt = arbeidssokerBesvarelseEvent.registreringsTidspunkt.truncatedTo(ChronoUnit.MILLIS),
@@ -113,7 +113,7 @@ fun situasjonMottat(utfoertAv: Bruker, arbeidssokerBesvarelseEvent: Arbeidssoker
                 jaNeiVetIkke(arbeidssokerBesvarelseEvent.besvarelse.helseHinder.verdi.name)
             ),
             arbeidserfaring = arbeidserfaring(arbeidssokerBesvarelseEvent),
-            arbeidsoekersituasjon = Arbeidsoekersituasjon(
+            jobbsituasjon = Jobbsituasjon(
                 listOfNotNull(
                     tilSituasjonElement(arbeidssokerBesvarelseEvent)
                 )

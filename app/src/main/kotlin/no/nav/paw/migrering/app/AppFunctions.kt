@@ -10,13 +10,12 @@ import no.nav.paw.migrering.app.db.skrivBatchTilDb
 import no.nav.paw.migrering.app.kafka.StatusConsumerRebalanceListener
 import no.nav.paw.migrering.app.konfigurasjon.applikasjonKonfigurasjon
 import no.nav.paw.migrering.app.serde.hendelseTilBytes
-import no.nav.paw.migrering.app.utils.ConsumerBackedCloseableSequence
 import no.nav.paw.migrering.app.utils.nLimitFilter
 import org.apache.kafka.clients.producer.KafkaProducer
 
 fun prepareBatches(
-    periodeHendelseMeldinger: ConsumerBackedCloseableSequence<String, ArbeidssokerperiodeHendelseMelding>,
-    besvarelseHendelser: ConsumerBackedCloseableSequence<String, ArbeidssokerBesvarelseEvent>,
+    periodeHendelseMeldinger: Sequence<List<Pair<String, ArbeidssokerperiodeHendelseMelding>>>,
+    besvarelseHendelser: Sequence<List<Pair<String, ArbeidssokerBesvarelseEvent>>>,
 ): Sequence<List<Hendelse>> {
     val utfoertAv = Bruker(
         type = BrukerType.SYSTEM,
