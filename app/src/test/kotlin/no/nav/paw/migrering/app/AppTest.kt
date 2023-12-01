@@ -5,7 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.paw.arbeidssokerregisteret.GJELDER_FRA_DATO
 import no.nav.paw.arbeidssokerregisteret.PROSENT
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Avsluttet
 import no.nav.paw.arbeidssokerregisteret.intern.v1.OpplysningerOmArbeidssoekerMottatt
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Startet
 import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.BrukerType
 import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.JaNeiVetIkke
 import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.JobbsituasjonBeskrivelse
@@ -16,14 +18,16 @@ import no.nav.paw.migrering.Hendelse
 import no.nav.paw.migrering.app.mapping.toIso8601
 import java.time.Instant
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeUnit
 
-class AppTest: FreeSpec({
+class AppTest : FreeSpec({
     "Vi sender inn start, besvarelse også stopp før vi validerer resultatet" - {
         val eventLogIterator = prepareBatches(
             periodeHendelseMeldinger = listOf(emptyList(), listOf("1" to arbeidssokerperiodeStartet, "1" to arbeidsokerperiodeStoppet)).asSequence(),
             besvarelseHendelser = listOf(listOf("123z" to besvarelse), emptyList(), emptyList()).asSequence()
         ).iterator()
-        "Første hendelse skal være basert på innsendt besvarelse" {
+        "1. batch skal inneholde 1 hendelse basert på innsendt besvarelse" {
             eventLogIterator.hasNext() shouldBe true
             val hendelser = eventLogIterator.next()
             hendelser.size shouldBe 1
@@ -32,7 +36,7 @@ class AppTest: FreeSpec({
             hendelse.identitetsnummer shouldBe besvarelse.foedselsnummer
             hendelse.metadata.utfoertAv.id shouldBe "paw-migrering-veilarb-til-nytt-register"
             hendelse.metadata.utfoertAv.type shouldBe BrukerType.SYSTEM
-            with (hendelse.opplysningerOmArbeidssoeker) {
+            with(hendelse.opplysningerOmArbeidssoeker) {
                 arbeidserfaring.harHattArbeid shouldBe JaNeiVetIkke.JA
                 utdanning.bestaatt shouldBe JaNeiVetIkke.NEI
                 utdanning.godkjent shouldBe JaNeiVetIkke.VET_IKKE
@@ -44,6 +48,30 @@ class AppTest: FreeSpec({
                 beskrivelse.detaljer[PROSENT] shouldBe "75"
                 beskrivelse.detaljer[GJELDER_FRA_DATO] shouldBe besvarelse.besvarelse.dinSituasjon.tilleggsData.gjelderFraDato.toIso8601()
             }
+        }
+        "2. batch skal inneholde 2 hendelser" - {
+            eventLogIterator.hasNext() shouldBe true
+            val hendelser = eventLogIterator.next()
+            hendelser.size shouldBe 2
+            "1. hendelse i batchen skal være periode startet" {
+                val hendelse = hendelser.first()
+                hendelse.shouldBeInstanceOf<Startet>()
+                hendelse.identitetsnummer shouldBe arbeidssokerperiodeStartet.foedselsnummer
+                hendelse.metadata.utfoertAv.id shouldBe "paw-migrering-veilarb-til-nytt-register"
+                hendelse.metadata.utfoertAv.type shouldBe BrukerType.SYSTEM
+                hendelse.metadata.tidspunkt shouldBe arbeidssokerperiodeStartet.tidspunkt.truncatedTo(ChronoUnit.MILLIS)
+            }
+            "2. hendelse i batchen skal være periode stoppet" {
+                val hendelse = hendelser[1]
+                hendelse.shouldBeInstanceOf<Avsluttet>()
+                hendelse.identitetsnummer shouldBe arbeidsokerperiodeStoppet.foedselsnummer
+                hendelse.metadata.utfoertAv.id shouldBe "paw-migrering-veilarb-til-nytt-register"
+                hendelse.metadata.utfoertAv.type shouldBe BrukerType.SYSTEM
+                hendelse.metadata.tidspunkt shouldBe arbeidsokerperiodeStoppet.tidspunkt.truncatedTo(ChronoUnit.MILLIS)
+            }
+        }
+        "Ingen flere hendelser skal være tilgjengelig" {
+            eventLogIterator.hasNext() shouldBe false
         }
     }
 })
@@ -123,7 +151,7 @@ val besvarelse: ArbeidssokerBesvarelseEvent = ArbeidssokerBesvarelseEvent(
                 null,
                 null,
                 null,
-                LocalDate.of(1980, 9,9),
+                LocalDate.of(1980, 9, 9),
                 "75",
                 null,
                 null,
