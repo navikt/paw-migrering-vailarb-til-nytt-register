@@ -1,65 +1,29 @@
-package no.nav.paw.migrering.app
+package no.nav.paw.migrering.app.mapping
 
-import no.nav.paw.arbeidssokerregisteret.GJELDER_FRA_DATO
-import no.nav.paw.arbeidssokerregisteret.GJELDER_TIL_DATO
-import no.nav.paw.arbeidssokerregisteret.PROSENT
-import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse
 import no.nav.paw.arbeidssokerregisteret.intern.v1.OpplysningerOmArbeidssoekerMottatt
 import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.*
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
-import no.nav.paw.besvarelse.DinSituasjonSvar
 import no.nav.paw.besvarelse.SisteStillingSvar
 import no.nav.paw.besvarelse.UtdanningSvar
-import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
 
 
-fun tilPeriode(bruker: Bruker, periode: ArbeidssokerperiodeHendelseMelding): Hendelse =
-    when (periode.hendelse) {
-        no.nav.paw.migrering.Hendelse.STARTET -> periode.toStartEvent(bruker)
-        no.nav.paw.migrering.Hendelse.STOPPET -> periode.toAvsluttetEvent(bruker)
-    }
-
 fun tilSituasjonElement(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent): JobbsituasjonMedDetaljer? =
-    when (arbeidssokerBesvarelseEvent.besvarelse.dinSituasjon.verdi) {
-        DinSituasjonSvar.MISTET_JOBBEN -> JobbsituasjonBeskrivelse.HAR_BLITT_SAGT_OPP
-        DinSituasjonSvar.OPPSIGELSE -> JobbsituasjonBeskrivelse.HAR_SAGT_OPP
-        DinSituasjonSvar.HAR_SAGT_OPP -> JobbsituasjonBeskrivelse.HAR_SAGT_OPP
-        DinSituasjonSvar.SAGT_OPP -> JobbsituasjonBeskrivelse.HAR_BLITT_SAGT_OPP
-        DinSituasjonSvar.ALDRI_HATT_JOBB -> JobbsituasjonBeskrivelse.ALDRI_HATT_JOBB
-        DinSituasjonSvar.VIL_BYTTE_JOBB -> JobbsituasjonBeskrivelse.VIL_BYTTE_JOBB
-        DinSituasjonSvar.ER_PERMITTERT -> JobbsituasjonBeskrivelse.ER_PERMITTERT
-        DinSituasjonSvar.USIKKER_JOBBSITUASJON -> JobbsituasjonBeskrivelse.USIKKER_JOBBSITUASJON
-        DinSituasjonSvar.JOBB_OVER_2_AAR -> JobbsituasjonBeskrivelse.IKKE_VAERT_I_JOBB_SISTE_2_AAR
-        DinSituasjonSvar.VIL_FORTSETTE_I_JOBB -> JobbsituasjonBeskrivelse.ANNET
-        DinSituasjonSvar.AKKURAT_FULLFORT_UTDANNING -> JobbsituasjonBeskrivelse.AKKURAT_FULLFORT_UTDANNING
-        DinSituasjonSvar.DELTIDSJOBB_VIL_MER -> JobbsituasjonBeskrivelse.DELTIDSJOBB_VIL_MER
-        DinSituasjonSvar.ENDRET_PERMITTERINGSPROSENT -> JobbsituasjonBeskrivelse.ER_PERMITTERT
-        DinSituasjonSvar.TILBAKE_TIL_JOBB -> null
-        DinSituasjonSvar.NY_JOBB -> JobbsituasjonBeskrivelse.NY_JOBB
-        DinSituasjonSvar.MIDLERTIDIG_JOBB -> JobbsituasjonBeskrivelse.MIDLERTIDIG_JOBB
-        DinSituasjonSvar.KONKURS -> JobbsituasjonBeskrivelse.KONKURS
-        DinSituasjonSvar.UAVKLART -> JobbsituasjonBeskrivelse.USIKKER_JOBBSITUASJON
-        DinSituasjonSvar.ANNET -> JobbsituasjonBeskrivelse.ANNET
-        null -> null
-    }?.let { beskrivelse ->
-        JobbsituasjonMedDetaljer(
-            beskrivelse = beskrivelse,
-            detaljer = mapOf(
-                GJELDER_FRA_DATO to arbeidssokerBesvarelseEvent.besvarelse?.dinSituasjon?.gjelderFraDato?.toIso8601(),
-                GJELDER_TIL_DATO to arbeidssokerBesvarelseEvent.besvarelse?.dinSituasjon?.gjelderTilDato?.toIso8601(),
-                PROSENT to listOfNotNull(
-                    arbeidssokerBesvarelseEvent.besvarelse?.dinSituasjon?.tilleggsData?.permitteringsProsent,
-                    arbeidssokerBesvarelseEvent.besvarelse?.dinSituasjon?.tilleggsData?.stillingsProsent
-                ).firstOrNull()
-            ).mapNotNull { (key, value) -> value?.let { key to it } }.toMap()
+    with(jobbsituasjonScope(arbeidssokerBesvarelseEvent.besvarelse?.dinSituasjon?.verdi)) {
+        jobbSituasjonMedDetaljer(arbeidssokerBesvarelseEvent).copy(
+            beskrivelse = jobSituasjonBeskrivelse,
+            detaljer = detaljer(arbeidssokerBesvarelseEvent)
+                .mapNotNull { (key, value) -> value?.let { key to it } }.toMap()
         )
     }
 
-fun LocalDate.toIso8601(): String = this.format(DateTimeFormatter.ISO_DATE)
+context(JobbSituasjonScope<ArbeidssokerBesvarelseEvent>)
+fun jobbSituasjonMedDetaljer(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) = JobbsituasjonMedDetaljer(
+    beskrivelse = jobSituasjonBeskrivelse,
+    detaljer = detaljer(arbeidssokerBesvarelseEvent)
+        .mapNotNull { (key, value) -> value?.let { key to it } }.toMap()
+)
 
 fun jaNeiVetIkke(navn: String) =
     when (navn) {

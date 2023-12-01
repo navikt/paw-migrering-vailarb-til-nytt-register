@@ -24,12 +24,12 @@ dependencies {
     implementation("org.flywaydb:flyway-core:9.21.2")
     implementation(project(":veilarb-besvarelse"))
     implementation(project(":veilarb-periode"))
-    implementation("no.nav.paw.arbeidssokerregisteret.internt.schema:interne-eventer:23.11.28.78-1")
+    implementation("no.nav.paw.arbeidssokerregisteret.internt.schema:interne-eventer:23.11.30.79-1")
     implementation("com.sksamuel.hoplite:hoplite-core:$hopliteVersion")
     implementation("com.sksamuel.hoplite:hoplite-toml:$hopliteVersion")
     implementation(pawObservability.bundles.ktorNettyOpentelemetryMicrometerPrometheus)
 
-    implementation("no.nav.paw.arbeidssokerregisteret.api.schema:arbeidssoekerregisteret-kotlin:23.11.16.65-1")
+    implementation("no.nav.paw.arbeidssokerregisteret.api.schema:arbeidssoekerregisteret-kotlin:23.11.30.79-1")
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.3")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.3")

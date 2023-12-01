@@ -13,6 +13,7 @@ import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.Utdanningsnivaa
 import no.nav.paw.besvarelse.*
 import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.Hendelse
+import no.nav.paw.migrering.app.mapping.toIso8601
 import java.time.Instant
 import java.time.LocalDate
 
@@ -41,7 +42,7 @@ class AppTest: FreeSpec({
                 val beskrivelse = jobbsituasjon.beskrivelser.first()
                 beskrivelse.beskrivelse shouldBe JobbsituasjonBeskrivelse.ER_PERMITTERT
                 beskrivelse.detaljer[PROSENT] shouldBe "75"
-                beskrivelse.detaljer[GJELDER_FRA_DATO] shouldBe besvarelse.besvarelse.dinSituasjon.tilleggsData.gjelderFraDato
+                beskrivelse.detaljer[GJELDER_FRA_DATO] shouldBe besvarelse.besvarelse.dinSituasjon.tilleggsData.gjelderFraDato.toIso8601()
             }
         }
     }

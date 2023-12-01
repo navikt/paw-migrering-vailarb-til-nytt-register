@@ -9,6 +9,8 @@ import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.app.db.skrivBatchTilDb
 import no.nav.paw.migrering.app.kafka.StatusConsumerRebalanceListener
 import no.nav.paw.migrering.app.konfigurasjon.applikasjonKonfigurasjon
+import no.nav.paw.migrering.app.mapping.situasjonMottat
+import no.nav.paw.migrering.app.mapping.tilPeriode
 import no.nav.paw.migrering.app.serde.hendelseTilBytes
 import no.nav.paw.migrering.app.utils.nLimitFilter
 import org.apache.kafka.clients.producer.KafkaProducer
