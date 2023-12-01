@@ -1,4 +1,4 @@
-FROM ghcr.io/navikt/baseimages/temurin:17
+FROM ghcr.io/navikt/baseimages/temurin:21
 
 ENV SERVICE_NAVN=paw-migrering-veilarb-til-nytt-register
 ENV AGENT=agents/opentelemetry-javaagent.jar
