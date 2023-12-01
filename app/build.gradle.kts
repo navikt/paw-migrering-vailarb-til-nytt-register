@@ -12,6 +12,7 @@ val ktorVersion = pawObservability.versions.ktor
 val navCommonModulesVersion = "2.2023.01.10_13.49-81ddc732df3a"
 val hopliteVersion = "2.8.0.RC3"
 val exposedVersion = "0.42.1"
+val arbeidssokerregisteretVersion = "23.12.01.82-1"
 
 dependencies {
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
@@ -24,12 +25,12 @@ dependencies {
     implementation("org.flywaydb:flyway-core:9.21.2")
     implementation(project(":veilarb-besvarelse"))
     implementation(project(":veilarb-periode"))
-    implementation("no.nav.paw.arbeidssokerregisteret.internt.schema:interne-eventer:23.11.30.79-1")
+    implementation("no.nav.paw.arbeidssokerregisteret.internt.schema:interne-eventer:$arbeidssokerregisteretVersion")
     implementation("com.sksamuel.hoplite:hoplite-core:$hopliteVersion")
     implementation("com.sksamuel.hoplite:hoplite-toml:$hopliteVersion")
     implementation(pawObservability.bundles.ktorNettyOpentelemetryMicrometerPrometheus)
 
-    implementation("no.nav.paw.arbeidssokerregisteret.api.schema:arbeidssoekerregisteret-kotlin:23.11.30.79-1")
+    implementation("no.nav.paw.arbeidssokerregisteret.api.schema:arbeidssoekerregisteret-kotlin:$arbeidssokerregisteretVersion")
 
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.3")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.3")

@@ -43,6 +43,7 @@ class AppTest : FreeSpec({
                 utdanning.utdanningsnivaa shouldBe Utdanningsnivaa.HOYERE_UTDANNING_1_TIL_4
                 helse.helsetilstandHindrerArbeid shouldBe JaNeiVetIkke.NEI
                 jobbsituasjon.beskrivelser.size shouldBe 1
+                annet.andreForholdHindrerArbeid shouldBe JaNeiVetIkke.NEI
                 val beskrivelse = jobbsituasjon.beskrivelser.first()
                 beskrivelse.beskrivelse shouldBe JobbsituasjonBeskrivelse.ER_PERMITTERT
                 beskrivelse.detaljer[PROSENT] shouldBe "75"

@@ -81,6 +81,9 @@ fun situasjonMottat(utfoertAv: Bruker, arbeidssokerBesvarelseEvent: Arbeidssoker
                 listOfNotNull(
                     tilSituasjonElement(arbeidssokerBesvarelseEvent)
                 )
+            ),
+            annet = Annet(
+                jaNeiVetIkke(arbeidssokerBesvarelseEvent.besvarelse.andreForhold.verdi.name)
             )
         )
     )
