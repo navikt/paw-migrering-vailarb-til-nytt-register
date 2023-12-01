@@ -32,10 +32,10 @@ private fun Application.configureHealthMonitoring(
             call.respondText("ALIVE")
         }
         get("/isReady") {
-            if (statusConsumerRebalanceListener.isReady()) {
+            if (statusConsumerRebalanceListener.hasBeenInitialized()) {
                 call.respondText("READY")
             } else {
-                call.respond(HttpStatusCode.ServiceUnavailable, "Topics are being rebalanced")
+                call.respond(HttpStatusCode.ServiceUnavailable, "Listener is waiting for initial poll")
             }
         }
         get("/metrics") {

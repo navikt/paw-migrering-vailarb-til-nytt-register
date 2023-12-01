@@ -42,4 +42,8 @@ class StatusConsumerRebalanceListener(vararg topics: String): ConsumerRebalanceL
         return map.all { it.value.get() == klar }
     }
 
+    fun hasBeenInitialized(): Boolean {
+        return map.all { it.value.get() != init }
+    }
+
 }
