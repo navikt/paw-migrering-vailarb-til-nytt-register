@@ -21,7 +21,7 @@ spec:
       cpu: 400m
       memory: 200Mi
   kafka:
-    pool: nav-dev
+    pool: { { kafka } }
   observability:
     tracing:
       enabled: true
@@ -40,7 +40,7 @@ spec:
     - name: KAFKA_KEYS_URL
       value: http://paw-kafka-key-generator/api/v1/hentEllerOpprett
     - name: KAFKA_KEYS_SCOPE
-      value: api://dev-gcp.paw.paw-kafka-key-generator/.default
+      value: api://{{cluster}}.paw.paw-kafka-key-generator/.default
   accessPolicy:
     outbound:
       external:

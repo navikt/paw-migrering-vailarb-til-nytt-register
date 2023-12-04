@@ -37,7 +37,7 @@ jobs:
 
   deploy-dev:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/dev')
-    name: Deploy to NAIS
+    name: Deploy to dev-gcp
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -47,20 +47,19 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: nais/nais.yaml
-          VAR: image=${{ needs.build.outputs.image }}
+          VAR: image=${{ needs.build.outputs.image }},kafka=nav-dev,cluster=dev-gcp
 
-  # deploy-prod:
-  #   if: github.ref == 'refs/heads/main'
-  #   name: Deploy to prod-gcp
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #    - uses: actions/checkout@v3
-
-  #    - uses: nais/deploy/actions/deploy@v1
-  #      env:
-  #        TEAM: paw
-  #        APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-  #        CLUSTER: prod-gcp
-  #        RESOURCE: nais/nais-prod.yaml
-  #        VAR: image=${{ needs.build.outputs.image }}
+  deploy-prod:
+    if: github.ref == 'refs/heads/main'
+    name: Deploy to prod-gcp
+    needs: [build,deploy-dev]
+    runs-on: ubuntu-latest
+    steps:
+     - uses: actions/checkout@v3
+     - uses: nais/deploy/actions/deploy@v1
+       env:
+         TEAM: paw
+         APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+         CLUSTER: prod-gcp
+         RESOURCE: nais/nais-prod.yaml
+         VAR: image=${{ needs.build.outputs.image }},kafka=nav-prod,cluster=prod-gcp
