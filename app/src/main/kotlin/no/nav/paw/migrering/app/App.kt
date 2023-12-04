@@ -15,6 +15,7 @@ import no.nav.paw.migrering.app.utils.consumerSequence
 import org.apache.kafka.common.serialization.Serdes
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.LoggerFactory
+import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 
 val logger = LoggerFactory.getLogger("migrering")!!
@@ -60,22 +61,27 @@ fun main() {
         besvarelseSequence.closeJustLogOnError()
         avslutt.set(true)
     })
-    use(
-        periodeSequence,
-        besvarelseSequence,
-        hendelseProducer(kafkaKonfigurasjon)
-    ) { periodeHendelseMeldinger, besvarelseHendelser, hendelseProducer ->
-        with(prometheusMeterRegistry) {
-            prepareBatches(
-                periodeHendelseMeldinger = periodeHendelseMeldinger,
-                besvarelseHendelser = besvarelseHendelser
-            ).processBatches(
-                consumerStatus = consumerStatus,
-                eventlogTopic = kafkaKonfigurasjon.klientKonfigurasjon.eventlogTopic,
-                producer = hendelseProducer,
-                identitetsnummerTilKafkaKey = { identitetsnummer ->
-                    runBlocking { dependencies.kafkaKeysClient.getKey(identitetsnummer).id }
-                })
+    val value = System.getProperty("paw_migrering_deaktivert")
+    if (value != null) {
+        Thread.sleep(Duration.ofDays(1).toMillis())
+    } else {
+        use(
+            periodeSequence,
+            besvarelseSequence,
+            hendelseProducer(kafkaKonfigurasjon)
+        ) { periodeHendelseMeldinger, besvarelseHendelser, hendelseProducer ->
+            with(prometheusMeterRegistry) {
+                prepareBatches(
+                    periodeHendelseMeldinger = periodeHendelseMeldinger,
+                    besvarelseHendelser = besvarelseHendelser
+                ).processBatches(
+                    consumerStatus = consumerStatus,
+                    eventlogTopic = kafkaKonfigurasjon.klientKonfigurasjon.eventlogTopic,
+                    producer = hendelseProducer,
+                    identitetsnummerTilKafkaKey = { identitetsnummer ->
+                        runBlocking { dependencies.kafkaKeysClient.getKey(identitetsnummer).id }
+                    })
+            }
         }
     }
 }
