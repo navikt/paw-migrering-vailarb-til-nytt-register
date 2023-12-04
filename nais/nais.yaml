@@ -40,11 +40,9 @@ spec:
     - name: KAFKA_KEYS_URL
       value: http://paw-kafka-key-generator/api/v1/hentEllerOpprett
     - name: KAFKA_KEYS_SCOPE
-      value: api://{{cluster}}.paw.paw-kafka-key-generator/.default
+      value: api://{{ cluster }}.paw.paw-kafka-key-generator/.default
   accessPolicy:
     outbound:
-      external:
-        - host: pdl-api.dev-fss-pub.nais.io
       rules:
         - application: paw-kafka-key-generator
   liveness:
