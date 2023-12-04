@@ -21,7 +21,7 @@ spec:
       cpu: 400m
       memory: 200Mi
   kafka:
-    pool: { { kafka } }
+    pool: {{ kafka }}
   observability:
     tracing:
       enabled: true
