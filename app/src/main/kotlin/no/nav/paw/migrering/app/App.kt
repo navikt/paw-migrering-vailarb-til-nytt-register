@@ -63,8 +63,10 @@ fun main() {
     })
     val value = System.getProperty("paw_migrering_deaktivert")
     if (value != null) {
+        logger.info("Migrering er deaktivert")
         Thread.sleep(Duration.ofDays(1).toMillis())
     } else {
+        logger.info("Migrering er aktivert")
         use(
             periodeSequence,
             besvarelseSequence,
