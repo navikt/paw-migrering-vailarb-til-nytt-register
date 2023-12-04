@@ -38,7 +38,7 @@ fun <T : SpecificRecord> KafkaKonfigurasjon.opprettSerde() = SpecificAvroSerde<T
 val KafkaKonfigurasjon.properties
     get(): Map<String, Any?> = mapOf(
         ConsumerConfig.GROUP_ID_CONFIG to klientKonfigurasjon.konsumerGruppeId,
-        ProducerConfig.CLIENT_ID_CONFIG to klientKonfigurasjon.produsentKlientId,
+        // ProducerConfig.CLIENT_ID_CONFIG to klientKonfigurasjon.produsentKlientId,
         ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
         ConsumerConfig.MAX_POLL_RECORDS_CONFIG to klientKonfigurasjon.maksHentetPerKall,
         CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to serverKonfigurasjon.kafkaBrokers
