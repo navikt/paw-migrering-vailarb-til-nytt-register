@@ -11,8 +11,6 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.Serde
-import org.apache.kafka.streams.StreamsConfig
-import java.util.*
 
 data class KafkaKonfigurasjon(
     val klientKonfigurasjon: KlientKonfigurasjon,
@@ -25,20 +23,16 @@ fun <T : SpecificRecord> KafkaKonfigurasjon.opprettSerde() = SpecificAvroSerde<T
         mapOf(
             KafkaAvroSerializerConfig.SCHEMA_REGISTRY_URL_CONFIG to schemaRegistryKonfigurasjon.url,
             KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS to "true"
-        ) + (schemaRegistryKonfigurasjon.bruker?.let {
-            mapOf(
-                SchemaRegistryClientConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
-                SchemaRegistryClientConfig.USER_INFO_CONFIG to "${schemaRegistryKonfigurasjon.bruker}:${schemaRegistryKonfigurasjon.passord}",
-            )
-        } ?: emptyMap()),
+        ) + (
+            schemaRegistryKonfigurasjon.bruker?.let {
+                mapOf(
+                    SchemaRegistryClientConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
+                    SchemaRegistryClientConfig.USER_INFO_CONFIG to "${schemaRegistryKonfigurasjon.bruker}:${schemaRegistryKonfigurasjon.passord}"
+                )
+            } ?: emptyMap()
+            ),
         false
     )
-}
-
-fun Map<String, Any?>.toProperties(): Properties {
-    val properties = Properties()
-    properties.putAll(this)
-    return properties
 }
 
 val KafkaKonfigurasjon.properties
@@ -47,19 +41,18 @@ val KafkaKonfigurasjon.properties
         ProducerConfig.CLIENT_ID_CONFIG to klientKonfigurasjon.produsentKlientId,
         ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
         ConsumerConfig.MAX_POLL_RECORDS_CONFIG to klientKonfigurasjon.maksHentetPerKall,
-        StreamsConfig.BOOTSTRAP_SERVERS_CONFIG to serverKonfigurasjon.kafkaBrokers,
+        CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to serverKonfigurasjon.kafkaBrokers
     ) + if (serverKonfigurasjon.autentisering.equals("SSL", true)) {
         mapOf(
             CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to "SSL",
             SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to serverKonfigurasjon.keystorePath,
             SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to serverKonfigurasjon.credstorePassword,
             SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to serverKonfigurasjon.truststorePath,
-            SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to serverKonfigurasjon.credstorePassword,
-            SslConfigs.SSL_KEY_PASSWORD_CONFIG to serverKonfigurasjon.credstorePassword,
-            SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG to "JKS",
-            SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to "PKCS12"
+            SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to serverKonfigurasjon.credstorePassword
         )
-    } else emptyMap()
+    } else {
+        emptyMap()
+    }
 
 val KafkaKonfigurasjon.propertiesMedAvroSchemaReg
     get() = properties +
@@ -68,12 +61,14 @@ val KafkaKonfigurasjon.propertiesMedAvroSchemaReg
             KafkaAvroSerializerConfig.AUTO_REGISTER_SCHEMAS to schemaRegistryKonfigurasjon.autoRegistrerSchema,
             KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to true,
             KafkaAvroSerializerConfig.VALUE_SUBJECT_NAME_STRATEGY to RecordNameStrategy::class.java.name
-        ) + (schemaRegistryKonfigurasjon.bruker?.let {
-        mapOf(
-            SchemaRegistryClientConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
-            SchemaRegistryClientConfig.USER_INFO_CONFIG to "${schemaRegistryKonfigurasjon.bruker}:${schemaRegistryKonfigurasjon.passord}",
-        )
-    } ?: emptyMap())
+        ) + (
+            schemaRegistryKonfigurasjon.bruker?.let {
+                mapOf(
+                    SchemaRegistryClientConfig.BASIC_AUTH_CREDENTIALS_SOURCE to "USER_INFO",
+                    SchemaRegistryClientConfig.USER_INFO_CONFIG to "${schemaRegistryKonfigurasjon.bruker}:${schemaRegistryKonfigurasjon.passord}"
+                )
+            } ?: emptyMap()
+            )
 
 fun Map<String, Any?>.medKeySerde(serde: Serde<*>) = this + mapOf(
     ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to serde.serializer()::class.java.name,
@@ -84,4 +79,3 @@ fun Map<String, Any?>.medValueSerde(serde: Serde<*>) = this + mapOf(
     ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to serde.serializer()::class.java.name,
     ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to serde.deserializer()::class.java.name
 )
-

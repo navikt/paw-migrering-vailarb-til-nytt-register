@@ -1,0 +1,56 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: paw-migrering-veilarb-til-nytt-register
+  namespace: paw
+  labels:
+    team: paw
+spec:
+  azure:
+    application:
+      enabled: true
+  image: {{ image }}
+  replicas:
+    min: 1
+    max: 1
+  resources:
+    limits:
+      cpu: 3500m
+      memory: 1000Mi
+    requests:
+      cpu: 400m
+      memory: 200Mi
+  kafka:
+    pool: nav-dev
+  observability:
+    tracing:
+      enabled: true
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_14
+        databases:
+          - name: arbeidssoekermigrering
+  env:
+    - name: OTEL_METRICS_EXPORTER
+      value: "none"
+    - name: OTEL_TRACES_EXPORTER
+      value: "maskert_oltp"
+    - name: OTEL_JAVAAGENT_DEBUG
+      value: "false"
+    - name: KAFKA_KEYS_URL
+      value: http://paw-kafka-key-generator/api/v1/hentEllerOpprett
+    - name: KAFKA_KEYS_SCOPE
+      value: api://dev-gcp.paw.paw-kafka-key-generator/.default
+  accessPolicy:
+    outbound:
+      rules:
+        - application: paw-kafka-key-generator
+  liveness:
+    path: /isAlive
+    initialDelay: 10
+  readiness:
+    path: /isReady
+    initialDelay: 10
+  prometheus:
+    enabled: true
+    path: /metrics

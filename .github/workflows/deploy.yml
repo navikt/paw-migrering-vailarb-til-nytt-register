@@ -46,8 +46,8 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
-          RESOURCE: nais/nais.yaml
-          VAR: image=${{ needs.build.outputs.image }},kafka=nav-dev,cluster=dev-gcp
+          RESOURCE: nais/nais-dev.yaml
+          VAR: image=${{ needs.build.outputs.image }}
 
   deploy-prod:
     if: github.ref == 'refs/heads/main'
@@ -61,5 +61,5 @@ jobs:
          TEAM: paw
          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
          CLUSTER: prod-gcp
-         RESOURCE: nais/nais.yaml
-         VAR: image=${{ needs.build.outputs.image }},kafka=nav-prod,cluster=prod-gcp
+         RESOURCE: nais/nais-prod.yaml
+         VAR: image=${{ needs.build.outputs.image }}
