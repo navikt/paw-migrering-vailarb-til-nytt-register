@@ -11,6 +11,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.Serde
+import java.time.Duration
 
 data class KafkaKonfigurasjon(
     val klientKonfigurasjon: KlientKonfigurasjon,
@@ -41,6 +42,7 @@ val KafkaKonfigurasjon.properties
         ProducerConfig.CLIENT_ID_CONFIG to klientKonfigurasjon.produsentKlientId,
         ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
         ConsumerConfig.MAX_POLL_RECORDS_CONFIG to klientKonfigurasjon.maksHentetPerKall,
+        ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG to Duration.ofMinutes(15).toMillis(),
         CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to serverKonfigurasjon.kafkaBrokers
     ) + if (serverKonfigurasjon.autentisering.equals("SSL", true)) {
         mapOf(
