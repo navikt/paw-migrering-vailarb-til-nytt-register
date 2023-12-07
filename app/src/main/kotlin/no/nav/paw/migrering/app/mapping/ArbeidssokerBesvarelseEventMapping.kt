@@ -63,7 +63,11 @@ fun situasjonMottat(utfoertAv: Bruker, arbeidssokerBesvarelseEvent: Arbeidssoker
         opplysningerOmArbeidssoeker = OpplysningerOmArbeidssoeker(
             id = UUID.randomUUID(),
             metadata = Metadata(
-                tidspunkt = arbeidssokerBesvarelseEvent.registreringsTidspunkt.truncatedTo(ChronoUnit.MILLIS),
+                tidspunkt = if (arbeidssokerBesvarelseEvent.endret) {
+                    arbeidssokerBesvarelseEvent.endretTidspunkt.truncatedTo(ChronoUnit.MILLIS)
+                } else {
+                    arbeidssokerBesvarelseEvent.registreringsTidspunkt.truncatedTo(ChronoUnit.MILLIS)
+                },
                 utfoertAv = utfoertAv,
                 kilde = "veilarbregistrering",
                 aarsak = "overføring"
