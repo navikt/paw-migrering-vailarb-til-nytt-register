@@ -5,6 +5,7 @@ import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.*
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.besvarelse.SisteStillingSvar
 import no.nav.paw.besvarelse.UtdanningSvar
+import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
 
@@ -63,11 +64,7 @@ fun situasjonMottat(utfoertAv: Bruker, arbeidssokerBesvarelseEvent: Arbeidssoker
         opplysningerOmArbeidssoeker = OpplysningerOmArbeidssoeker(
             id = UUID.randomUUID(),
             metadata = Metadata(
-                tidspunkt = if (arbeidssokerBesvarelseEvent.endret) {
-                    arbeidssokerBesvarelseEvent.endretTidspunkt.truncatedTo(ChronoUnit.MILLIS)
-                } else {
-                    arbeidssokerBesvarelseEvent.registreringsTidspunkt.truncatedTo(ChronoUnit.MILLIS)
-                },
+                tidspunkt = extractTimestamp(arbeidssokerBesvarelseEvent),
                 utfoertAv = utfoertAv,
                 kilde = "veilarbregistrering",
                 aarsak = "overføring"
@@ -91,3 +88,12 @@ fun situasjonMottat(utfoertAv: Bruker, arbeidssokerBesvarelseEvent: Arbeidssoker
             )
         )
     )
+
+private fun extractTimestamp(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent): Instant {
+    val timestamp = if (arbeidssokerBesvarelseEvent.endret) {
+        arbeidssokerBesvarelseEvent.endretTidspunkt.truncatedTo(ChronoUnit.MILLIS)
+    } else {
+        arbeidssokerBesvarelseEvent.registreringsTidspunkt.truncatedTo(ChronoUnit.MILLIS)
+    }
+    return conditionallyAddOneMilliSecond(timestamp)
+}
