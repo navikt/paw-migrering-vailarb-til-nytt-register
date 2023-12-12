@@ -4,6 +4,7 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import kotlinx.coroutines.runBlocking
+import no.nav.paw.arbeidssokerregisteret.intern.v1.OpplysningerOmArbeidssoekerMottatt
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.app.db.flywayMigrate
@@ -11,6 +12,7 @@ import no.nav.paw.migrering.app.kafka.StatusConsumerRebalanceListener
 import no.nav.paw.migrering.app.konfigurasjon.*
 import no.nav.paw.migrering.app.ktor.initKtor
 import no.nav.paw.migrering.app.serde.ArbeidssoekerEventSerde
+import no.nav.paw.migrering.app.serde.HendelseSerde
 import no.nav.paw.migrering.app.utils.consumerSequence
 import org.apache.kafka.common.serialization.Serdes
 import org.jetbrains.exposed.sql.Database
@@ -54,6 +56,14 @@ fun main() {
         subscribeTo = listOf(kafkaKonfigurasjon.klientKonfigurasjon.situasjonTopic),
         rebalanceListener = consumerStatus
     )
+    val opplysnigngerFraVeilarbConsumerProperties = kafkaKonfigurasjon.propertiesMedAvroSchemaReg
+        .medKeySerde(Serdes.String())
+        .medValueSerde(HendelseSerde())
+    val opplysnigngerFraVeilarbSequence = consumerSequence<String, OpplysningerOmArbeidssoekerMottatt>(
+        consumerProperties = opplysnigngerFraVeilarbConsumerProperties,
+        subscribeTo = listOf(kafkaKonfigurasjon.klientKonfigurasjon.opplysningerFraVeilarbTopic),
+        rebalanceListener = consumerStatus
+    )
     val avslutt = AtomicBoolean(false)
     Runtime.getRuntime().addShutdownHook(Thread {
         logger.info("Avslutter migrering")
@@ -70,12 +80,14 @@ fun main() {
         use(
             periodeSequence,
             besvarelseSequence,
+            opplysnigngerFraVeilarbSequence,
             hendelseProducer(kafkaKonfigurasjon)
-        ) { periodeHendelseMeldinger, besvarelseHendelser, hendelseProducer ->
+        ) { periodeHendelseMeldinger, besvarelseHendelser, opplysningerFraVeilarb, hendelseProducer ->
             with(prometheusMeterRegistry) {
                 prepareBatches(
                     periodeHendelseMeldinger = periodeHendelseMeldinger,
-                    besvarelseHendelser = besvarelseHendelser
+                    besvarelseHendelser = besvarelseHendelser,
+                    opplysningerFraVeilarbHendelser = opplysningerFraVeilarb
                 ).processBatches(
                     consumerStatus = consumerStatus,
                     eventlogTopic = kafkaKonfigurasjon.klientKonfigurasjon.eventlogTopic,

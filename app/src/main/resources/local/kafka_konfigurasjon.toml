@@ -3,6 +3,7 @@ gruppeId = "migrering_v1"
 eventlogTopic = "arbeidssoker-hendelseslogg-beta-v1"
 periodeTopic = "arbeidssokerperioder-overforing-beta-v1"
 situasjonTopic = "arbeidssoker-besvarelse-v2"
+opplysningerFraVeilarbTopic = "veilarb-opplysninger-mottatt-v1"
 
 [serverKonfigurasjon]
 autentisering = "PLAIN"

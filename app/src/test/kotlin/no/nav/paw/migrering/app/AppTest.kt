@@ -8,24 +8,25 @@ import no.nav.paw.arbeidssokerregisteret.PROSENT
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Avsluttet
 import no.nav.paw.arbeidssokerregisteret.intern.v1.OpplysningerOmArbeidssoekerMottatt
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Startet
-import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.BrukerType
-import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.JaNeiVetIkke
-import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.JobbsituasjonBeskrivelse
-import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.Utdanningsnivaa
+import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.*
 import no.nav.paw.besvarelse.*
+import no.nav.paw.besvarelse.Utdanning
 import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.Hendelse
 import no.nav.paw.migrering.app.mapping.toIso8601
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+import java.util.*
 import java.util.concurrent.TimeUnit
+import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse as InterntHendelse
 
 class AppTest : FreeSpec({
     "Vi sender inn start, besvarelse også stopp før vi validerer resultatet" - {
         val eventLogIterator = prepareBatches(
             periodeHendelseMeldinger = listOf(emptyList(), listOf("1" to arbeidssokerperiodeStartet, "1" to arbeidsokerperiodeStoppet)).asSequence(),
-            besvarelseHendelser = listOf(listOf("123z" to besvarelse), emptyList(), emptyList()).asSequence()
+            besvarelseHendelser = listOf(listOf("123z" to besvarelse), emptyList(), emptyList()).asSequence(),
+            opplysningerFraVeilarbHendelser = listOf<List<Pair<String, InterntHendelse>>>(emptyList(), listOf("dsa1" to situasjonMotattFraVeilarb), emptyList()).asSequence()
         ).iterator()
         "1. batch skal inneholde 1 hendelse basert på innsendt besvarelse" {
             eventLogIterator.hasNext() shouldBe true
@@ -50,10 +51,10 @@ class AppTest : FreeSpec({
                 beskrivelse.detaljer[GJELDER_FRA_DATO] shouldBe besvarelse.besvarelse.dinSituasjon.tilleggsData.gjelderFraDato.toIso8601()
             }
         }
-        "2. batch skal inneholde 2 hendelser" - {
-            eventLogIterator.hasNext() shouldBe true
+        "2. batch skal inneholde 3 hendelser" - {
+            "2. batch skal være tilgjengelig" { eventLogIterator.hasNext() shouldBe true }
             val hendelser = eventLogIterator.next()
-            hendelser.size shouldBe 2
+            "2.batch skal inneholde 3 hendelser" { hendelser.size shouldBe 3 }
             "1. hendelse i batchen skal være periode startet" {
                 val hendelse = hendelser.first()
                 hendelse.shouldBeInstanceOf<Startet>()
@@ -69,6 +70,11 @@ class AppTest : FreeSpec({
                 hendelse.metadata.utfoertAv.id shouldBe "paw-migrering-veilarb-til-nytt-register"
                 hendelse.metadata.utfoertAv.type shouldBe BrukerType.SYSTEM
                 hendelse.metadata.tidspunkt shouldBe arbeidsokerperiodeStoppet.tidspunkt.truncatedTo(ChronoUnit.MILLIS)
+            }
+            "3. hendelse i batchen skal være opplysninger mottatt fra veilarb" {
+                val hendelse = hendelser[2]
+                hendelse.shouldBeInstanceOf<OpplysningerOmArbeidssoekerMottatt>()
+                hendelse.shouldBe(situasjonMotattFraVeilarb)
             }
         }
         "Ingen flere hendelser skal være tilgjengelig" {
@@ -158,6 +164,48 @@ val besvarelse: ArbeidssokerBesvarelseEvent = ArbeidssokerBesvarelseEvent(
                 null,
                 null
             )
+        )
+    )
+)
+
+val situasjonMotattFraVeilarb = OpplysningerOmArbeidssoekerMottatt(
+    hendelseId = UUID.randomUUID(),
+    identitetsnummer = "12345678901",
+    opplysningerOmArbeidssoeker = OpplysningerOmArbeidssoeker(
+        id = UUID.randomUUID(),
+        metadata = Metadata(
+            tidspunkt = Instant.parse("2001-06-29T15:24:08.999+02:00"),
+            utfoertAv = Bruker(
+                type = BrukerType.SYSTEM,
+                id = "paw-migrering-veilarb-til-nytt-register"
+            ),
+            kilde = "veilarbregistrering",
+            aarsak = "overføring"
+        ),
+        utdanning = no.nav.paw.arbeidssokerregisteret.intern.v1.vo.Utdanning(
+            utdanningsnivaa = Utdanningsnivaa.HOYERE_UTDANNING_1_TIL_4,
+            bestaatt = JaNeiVetIkke.NEI,
+            godkjent = JaNeiVetIkke.VET_IKKE
+        ),
+        helse = Helse(
+            helsetilstandHindrerArbeid = JaNeiVetIkke.NEI
+        ),
+        arbeidserfaring = Arbeidserfaring(
+            harHattArbeid = JaNeiVetIkke.JA
+        ),
+        jobbsituasjon = Jobbsituasjon(
+            beskrivelser = listOf(
+                JobbsituasjonMedDetaljer(
+                    beskrivelse = JobbsituasjonBeskrivelse.ER_PERMITTERT,
+                    detaljer = mapOf(
+                        PROSENT to "75",
+                        GJELDER_FRA_DATO to "2020-01-01"
+                    )
+                )
+            )
+        ),
+        annet = Annet(
+            andreForholdHindrerArbeid = JaNeiVetIkke.NEI
         )
     )
 )

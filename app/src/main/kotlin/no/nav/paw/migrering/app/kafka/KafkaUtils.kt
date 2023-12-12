@@ -25,3 +25,15 @@ fun <T1 : Closeable, T2 : Closeable, T3 : Closeable, R> use(t1: T1, t2: T2, t3: 
         }
     }
 }
+
+fun <T1: Closeable, T2: Closeable, T3: Closeable, T4: Closeable> use(t1: T1, t2: T2, t3: T3, t4: T4, f: (T1, T2, T3, T4) -> Unit) {
+    t1.use {
+        t2.use {
+            t3.use {
+                t4.use {
+                    f(t1, t2, t3, t4)
+                }
+            }
+        }
+    }
+}
