@@ -5,6 +5,7 @@ import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.*
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.besvarelse.SisteStillingSvar
 import no.nav.paw.besvarelse.UtdanningSvar
+import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -95,5 +96,6 @@ private fun extractTimestamp(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelse
     } else {
         arbeidssokerBesvarelseEvent.registreringsTidspunkt.truncatedTo(ChronoUnit.MILLIS)
     }
-    return conditionallyAddOneMilliSecond(timestamp)
+    //kilden bruker ZoneOffset.ofHours(1) på endret/registrerings-tidspunkt
+    return conditionallyAddOneMilliSecond(timestamp.plus(Duration.ofHours(1)))
 }
