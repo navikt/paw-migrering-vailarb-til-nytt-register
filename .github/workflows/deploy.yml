@@ -52,7 +52,7 @@ jobs:
   deploy-prod:
     if: github.ref == 'refs/heads/main'
     name: Deploy to prod-gcp
-    needs: [build,deploy-dev]
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
      - uses: actions/checkout@v3
