@@ -13,8 +13,6 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.StringSerializer
 import java.time.Duration
 import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset
 import java.util.*
 
 fun main() {
@@ -31,7 +29,7 @@ fun main() {
     val objectMapper = jacksonObjectMapper().findAndRegisterModules()
     val antallPersoner = 1_500
     val personer = hentIder(antallPersoner)
-    val nåtid = LocalDateTime.now()
+    val nåtid = Instant.now()
 
     personer.asSequence().map { identitetsnummer ->
         periodeHendelse(
@@ -82,7 +80,6 @@ fun main() {
             besvarelse(
                 identitetsnummer = identitetsnummer,
                 tidspunkt = nåtid.minus(Duration.ofDays(1000).multipliedBy(6L - index))
-                    .toInstant(ZoneOffset.UTC)
             )
         }
     }.forEach { besvarelse ->

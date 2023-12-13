@@ -8,7 +8,6 @@ import no.nav.paw.migrering.Hendelse
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.random.Random
 
@@ -24,7 +23,7 @@ fun hentIder(antall: Int): List<String> = (1..antall)
 fun periodeHendelse(
     hendelse: Hendelse,
     identitetsnummer: String,
-    tidspunkt: LocalDateTime = LocalDateTime.now()
+    tidspunkt: Instant = Instant.now()
 ): ArbeidssokerperiodeHendelseMelding = ArbeidssokerperiodeHendelseMelding(
     hendelse = hendelse,
     foedselsnummer = identitetsnummer,
