@@ -14,8 +14,10 @@ import no.nav.paw.besvarelse.Utdanning
 import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.Hendelse
 import no.nav.paw.migrering.app.mapping.toIso8601
+import no.nav.paw.migrering.app.mapping.veilarbZoneId
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -62,6 +64,7 @@ class AppTest : FreeSpec({
                 hendelse.metadata.utfoertAv.id shouldBe "paw-migrering-veilarb-til-nytt-register"
                 hendelse.metadata.utfoertAv.type shouldBe BrukerType.SYSTEM
                 hendelse.metadata.tidspunkt shouldBe arbeidssokerperiodeStartet.tidspunkt.truncatedTo(ChronoUnit.MILLIS)
+                    .atZone(veilarbZoneId).toInstant()
             }
             "2. hendelse i batchen skal være periode stoppet" {
                 val hendelse = hendelser[1]
@@ -70,6 +73,7 @@ class AppTest : FreeSpec({
                 hendelse.metadata.utfoertAv.id shouldBe "paw-migrering-veilarb-til-nytt-register"
                 hendelse.metadata.utfoertAv.type shouldBe BrukerType.SYSTEM
                 hendelse.metadata.tidspunkt shouldBe arbeidsokerperiodeStoppet.tidspunkt.truncatedTo(ChronoUnit.MILLIS)
+                    .atZone(veilarbZoneId).toInstant()
             }
             "3. hendelse i batchen skal være opplysninger mottatt fra veilarb" {
                 val hendelse = hendelser[2]
@@ -86,13 +90,13 @@ class AppTest : FreeSpec({
 val arbeidssokerperiodeStartet: ArbeidssokerperiodeHendelseMelding = ArbeidssokerperiodeHendelseMelding(
     Hendelse.STARTET,
     "12345678901",
-    Instant.parse("2001-06-29T15:24:08+02:00"),
+    LocalDateTime.parse("2001-06-29T15:24:08"),
 )
 
 val arbeidsokerperiodeStoppet: ArbeidssokerperiodeHendelseMelding = ArbeidssokerperiodeHendelseMelding(
     Hendelse.STOPPET,
     "12345678901",
-    Instant.parse("2001-12-29T11:24:08z")
+    LocalDateTime.parse("2001-12-29T11:24:08")
 )
 
 val besvarelse: ArbeidssokerBesvarelseEvent = ArbeidssokerBesvarelseEvent(
