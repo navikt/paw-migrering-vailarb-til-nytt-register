@@ -56,7 +56,7 @@ fun main() {
         subscribeTo = listOf(kafkaKonfigurasjon.klientKonfigurasjon.situasjonTopic),
         rebalanceListener = consumerStatus
     )
-    val opplysnigngerFraVeilarbConsumerProperties = kafkaKonfigurasjon.propertiesMedAvroSchemaReg
+    val opplysnigngerFraVeilarbConsumerProperties = kafkaKonfigurasjon.properties
         .medKeySerde(Serdes.String())
         .medValueSerde(HendelseSerde())
     val opplysnigngerFraVeilarbSequence = consumerSequence<String, OpplysningerOmArbeidssoekerMottatt>(
