@@ -29,7 +29,9 @@ fun prepareBatches(
     return periodeHendelseMeldinger
         .map { batch -> batch.map { (_, periodeMelding) -> tilPeriode(utfoertAv, periodeMelding) } }
         .zip(besvarelseHendelser) { perioder, besvarelser ->
-            perioder + besvarelser.map { (_, besvarelse) -> situasjonMottat(utfoertAv, besvarelse) }
+            perioder + besvarelser
+                .filter { it.second.endret }
+                .map { (_, besvarelse) -> situasjonMottat(utfoertAv, besvarelse) }
         }
         .zip(opplysningerFraVeilarbHendelser) { perioderOgBesvarelser, opplysningerFraVeilarb ->
             perioderOgBesvarelser + (opplysningerFraVeilarb.map { (_, opplysning) -> opplysning }
