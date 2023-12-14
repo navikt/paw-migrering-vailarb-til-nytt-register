@@ -35,11 +35,6 @@ fun main() {
         kafkaKonfigurasjon.klientKonfigurasjon.periodeTopic,
         kafkaKonfigurasjon.klientKonfigurasjon.situasjonTopic
     )
-    val ktorEngine = initKtor(
-        prometheusMeterRegistry = prometheusMeterRegistry,
-        statusConsumerRebalanceListener = consumerStatus
-    )
-    ktorEngine.start(wait = false)
     val periodeConsumerProperties = kafkaKonfigurasjon.properties
         .medKeySerde(Serdes.String())
         .medValueSerde(ArbeidssoekerEventSerde())
@@ -64,6 +59,16 @@ fun main() {
         subscribeTo = listOf(kafkaKonfigurasjon.klientKonfigurasjon.opplysningerFraVeilarbTopic),
         rebalanceListener = consumerStatus
     )
+    val ktorEngine = initKtor(
+        prometheusMeterRegistry = prometheusMeterRegistry,
+        statusConsumerRebalanceListener = consumerStatus,
+        kafkaClientMetrics = listOf(
+            periodeSequence.metricsBinder,
+            besvarelseSequence.metricsBinder,
+            opplysnigngerFraVeilarbSequence.metricsBinder
+        )
+    )
+    ktorEngine.start(wait = false)
     val avslutt = AtomicBoolean(false)
     Runtime.getRuntime().addShutdownHook(Thread {
         logger.info("Avslutter migrering")

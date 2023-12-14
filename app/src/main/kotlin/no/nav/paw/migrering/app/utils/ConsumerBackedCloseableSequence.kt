@@ -1,5 +1,6 @@
 package no.nav.paw.migrering.app.utils
 
+import io.micrometer.core.instrument.binder.kafka.KafkaClientMetrics
 import no.nav.paw.migrering.app.kafka.StatusConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.LoggerFactory
@@ -46,10 +47,12 @@ class ConsumerBackedCloseableSequence<K, V>(
             }
         }
     }
+    val metricsBinder = KafkaClientMetrics(consumer)
 
     override fun close() {
         isClosed.set(true)
         consumer.close()
+        metricsBinder.close()
     }
 
     override fun closeJustLogOnError() {
