@@ -92,7 +92,8 @@ fun main() {
                 prepareBatches(
                     periodeHendelseMeldinger = periodeHendelseMeldinger,
                     besvarelseHendelser = besvarelseHendelser,
-                    opplysningerFraVeilarbHendelser = opplysningerFraVeilarb
+                    opplysningerFraVeilarbHendelser = opplysningerFraVeilarb,
+                    numberOfConsecutiveEmptyBatchesToWaitFor = 80 // each empty batch takes 750ms, 3 listeners with 250ms poll timeout
                 ).processBatches(
                     consumerStatus = consumerStatus,
                     eventlogTopic = kafkaKonfigurasjon.klientKonfigurasjon.eventlogTopic,

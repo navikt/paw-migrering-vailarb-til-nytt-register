@@ -20,7 +20,8 @@ import org.apache.kafka.clients.producer.KafkaProducer
 fun prepareBatches(
     periodeHendelseMeldinger: Sequence<List<Pair<String, ArbeidssokerperiodeHendelseMelding>>>,
     besvarelseHendelser: Sequence<List<Pair<String, ArbeidssokerBesvarelseEvent>>>,
-    opplysningerFraVeilarbHendelser: Sequence<List<Pair<String, Hendelse>>>
+    opplysningerFraVeilarbHendelser: Sequence<List<Pair<String, Hendelse>>>,
+    numberOfConsecutiveEmptyBatchesToWaitFor: Long = 3
 ): Sequence<List<Hendelse>> {
     val utfoertAv = Bruker(
         type = BrukerType.SYSTEM,
@@ -38,7 +39,7 @@ fun prepareBatches(
                 .filterIsInstance<OpplysningerOmArbeidssoekerMottatt>()
                 .map(::conditionallyAdd1MilliSecondToTimestamp))
         }
-        .nLimitFilter(numberOfConsecutiveFalseBeforeForward = 3, Collection<Hendelse>::isNotEmpty)
+        .nLimitFilter(numberOfConsecutiveEmptyBatchesToWaitFor, Collection<Hendelse>::isNotEmpty)
 }
 
 fun conditionallyAdd1MilliSecondToTimestamp(hendelse: OpplysningerOmArbeidssoekerMottatt): OpplysningerOmArbeidssoekerMottatt {
