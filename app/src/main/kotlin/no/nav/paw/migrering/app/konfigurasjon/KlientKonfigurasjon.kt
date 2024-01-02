@@ -6,6 +6,6 @@ data class KlientKonfigurasjon(
     val situasjonTopic: String,
     val opplysningerFraVeilarbTopic: String,
     val maksHentetPerKall: Int = 2000,
-    val konsumerGruppeId: String = "migrering_v1",
-    val produsentKlientId: String = "migrering_v1"
+    val konsumerGruppeId: String,
+    val produsentKlientId: String = konsumerGruppeId
 )
