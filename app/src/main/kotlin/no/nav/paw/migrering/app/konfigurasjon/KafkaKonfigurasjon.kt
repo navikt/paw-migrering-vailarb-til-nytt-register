@@ -38,6 +38,7 @@ fun <T : SpecificRecord> KafkaKonfigurasjon.opprettSerde() = SpecificAvroSerde<T
 
 val KafkaKonfigurasjon.properties
     get(): Map<String, Any?> = mapOf(
+        ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
         ConsumerConfig.GROUP_ID_CONFIG to klientKonfigurasjon.konsumerGruppeId,
         ProducerConfig.CLIENT_ID_CONFIG to klientKonfigurasjon.produsentKlientId,
         ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
