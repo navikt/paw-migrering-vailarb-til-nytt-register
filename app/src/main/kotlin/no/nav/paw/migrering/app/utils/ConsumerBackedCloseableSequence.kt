@@ -32,6 +32,7 @@ class ConsumerBackedCloseableSequence<K, V>(
 ) : CloseableSequence<List<Pair<K, V>>> {
     private val logger = LoggerFactory.getLogger(this::class.java)
     private val isClosed = AtomicBoolean(false)
+    private val lastWasEmpty = AtomicBoolean(false)
     override fun iterator(): Iterator<List<Pair<K, V>>> {
         return object : Iterator<List<Pair<K, V>>> {
             override fun hasNext(): Boolean {
@@ -43,6 +44,15 @@ class ConsumerBackedCloseableSequence<K, V>(
                 if (!hasNext()) throw NoSuchElementException("No more elements")
                 if (commitBeforePoll) consumer.commitSync()
                 val records = consumer.poll(pollTimeout)
+                val previousWasEmpty = lastWasEmpty.getAndSet(records.isEmpty)
+                if (records.isEmpty && !previousWasEmpty) {
+                    logger.debug("Ingen data tilgjengelig for øyeblikket, topics: {}",
+                        consumer.assignment().map { "topic=${it.topic()}, partition=${it.partition()}, offset=${consumer.position(it)}" })
+                }
+                if (!records.isEmpty && previousWasEmpty) {
+                    logger.debug("Data tilgjengelig igjen, topics: {}",
+                        consumer.assignment().map { "topic=${it.topic()}, partition=${it.partition()}, offset=${consumer.position(it)}" })
+                }
                 return records.map { it.key() to it.value() }
             }
         }

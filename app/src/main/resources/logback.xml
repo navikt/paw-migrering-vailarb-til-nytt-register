@@ -27,5 +27,6 @@
     <logger name="io.confluent" level="INFO" />
     <logger name="no.nav" level="INFO" />
     <logger name="tidtaker" level="INFO" />
+    <logger name="no.nav.paw.migrering.app.utils.ConsumerBackedCloseableSequence" level="DEBUG" />
 
 </configuration>
