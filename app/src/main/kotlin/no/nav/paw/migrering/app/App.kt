@@ -7,6 +7,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.paw.arbeidssokerregisteret.intern.v1.OpplysningerOmArbeidssoekerMottatt
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
+import no.nav.paw.migrering.app.db.HendelserTabell
 import no.nav.paw.migrering.app.db.flywayMigrate
 import no.nav.paw.migrering.app.kafka.StatusConsumerRebalanceListener
 import no.nav.paw.migrering.app.konfigurasjon.*
@@ -16,6 +17,9 @@ import no.nav.paw.migrering.app.serde.HendelseSerde
 import no.nav.paw.migrering.app.utils.consumerSequence
 import org.apache.kafka.common.serialization.Serdes
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.Op
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
@@ -82,6 +86,11 @@ fun main() {
         Thread.sleep(Duration.ofDays(1).toMillis())
     } else {
         logger.info("Migrering er aktivert")
+        prometheusMeterRegistry.gauge(MIGRERINGS_HENDELSER_I_DB, HendelserTabell) {
+            transaction {
+                HendelserTabell.select { Op.TRUE }.count().toDouble()
+            }
+        }
         use(
             periodeSequence,
             besvarelseSequence,
