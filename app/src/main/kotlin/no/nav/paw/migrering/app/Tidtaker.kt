@@ -5,6 +5,7 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import java.util.function.Supplier
 
 private const val MIGRERINGS_OPERASJON = "paw_arbeidssokerregisteret_migrering"
+const val MIGRERINGS_HENDELSE_TIL_DB = "paw_arbeidssokerregisteret_migrering_hendelse_til_db"
 
 private const val OPERATION = "operation"
 
