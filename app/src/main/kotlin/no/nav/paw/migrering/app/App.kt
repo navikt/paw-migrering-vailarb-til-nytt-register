@@ -92,7 +92,7 @@ fun main() {
         }
         antallHendelserIDB.set(antallHendelser.toLong())
         logger.info("Antall hendelser i DB ved start: $antallHendelser")
-        prometheusMeterRegistry.gauge(MIGRERINGS_HENDELSER_I_DB, antallHendelser)
+        prometheusMeterRegistry.gauge(MIGRERINGS_HENDELSER_I_DB, antallHendelserIDB) { it.get().toDouble() }
         use(
             periodeSequence,
             besvarelseSequence,
