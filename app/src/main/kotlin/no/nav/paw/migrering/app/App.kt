@@ -23,9 +23,10 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 val logger = LoggerFactory.getLogger("migrering")!!
-
+val antallHendelserIDB = AtomicLong(0)
 fun main() {
     val dependencies = createDependencies(
         config = applikasjonKonfigurasjon,
@@ -86,11 +87,12 @@ fun main() {
         Thread.sleep(Duration.ofDays(1).toMillis())
     } else {
         logger.info("Migrering er aktivert")
-        prometheusMeterRegistry.gauge(MIGRERINGS_HENDELSER_I_DB, HendelserTabell) {
-            transaction {
-                HendelserTabell.select { Op.TRUE }.count().toDouble()
-            }
+        val antallHendelser = transaction {
+            HendelserTabell.select { Op.TRUE }.count().toDouble()
         }
+        antallHendelserIDB.set(antallHendelser.toLong())
+        logger.info("Antall hendelser i DB ved start: $antallHendelser")
+        prometheusMeterRegistry.gauge(MIGRERINGS_HENDELSER_I_DB, antallHendelser)
         use(
             periodeSequence,
             besvarelseSequence,

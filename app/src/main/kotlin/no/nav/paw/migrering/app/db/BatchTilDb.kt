@@ -4,6 +4,7 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse
 import no.nav.paw.migrering.app.MIGRERINGS_HENDELSE_TIL_DB
 import no.nav.paw.migrering.app.Operations
+import no.nav.paw.migrering.app.antallHendelserIDB
 import no.nav.paw.migrering.app.loggTid
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.batchInsert
@@ -18,6 +19,8 @@ fun skrivBatchTilDb(serializer: (Hendelse) -> ByteArray, batch: List<Hendelse>) 
                 this[HendelserTabell.tidspunkt] = hendelse.metadata.tidspunkt
             })
         }
-        counter(MIGRERINGS_HENDELSE_TIL_DB).increment(batch.size.toDouble())
+        val batchSize = batch.size
+        counter(MIGRERINGS_HENDELSE_TIL_DB).increment(batchSize.toDouble())
+        antallHendelserIDB.addAndGet(batchSize.toLong())
     }
 }

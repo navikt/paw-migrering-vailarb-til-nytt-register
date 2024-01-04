@@ -12,12 +12,12 @@ import org.jetbrains.exposed.sql.transactions.transaction
 context (PrometheusMeterRegistry)
 fun hentDataFraDbOgSendTilTopic(topic: String, producer: KafkaProducer<Long, Hendelse>, identitetsnummerTilKafkaKey: (String) -> Long) {
     loggTid(Operations.BATCH_SEND_TO_TOPIC) {
-        transaction {
+        val antallSlettetFraDb = transaction {
             val batch = hentBatch(2000)
             if (batch.any { (id, _) -> !slett(id) }) {
                 logger.warn("Prøvde å slette data samtidig med annen node, avbryter denne batchen uten endringer!")
                 rollback()
-                return@transaction
+                return@transaction 0L
             } else {
                 batch.mapNotNull(Pair<Long, Hendelse?>::second)
                     .map { hendelse ->
@@ -43,7 +43,8 @@ fun hentDataFraDbOgSendTilTopic(topic: String, producer: KafkaProducer<Long, Hen
                         futures.forEach { it.get() }
                     }
                 }
-            }
+            }.count().toLong()
         }
+        antallHendelserIDB.addAndGet(-antallSlettetFraDb)
     }
 }
