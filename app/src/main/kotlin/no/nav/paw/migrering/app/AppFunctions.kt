@@ -39,7 +39,11 @@ fun prepareBatches(
                 .filterIsInstance<OpplysningerOmArbeidssoekerMottatt>()
                 .map(::conditionallyAdd1MilliSecondToTimestamp))
         }
-        .nLimitFilter(numberOfConsecutiveEmptyBatchesToWaitFor, Collection<Hendelse>::isNotEmpty)
+        .nLimitFilter(
+            numberOfConsecutiveFalseBeforeForward = numberOfConsecutiveEmptyBatchesToWaitFor,
+            numberOfConsecutiveTrueBeforeForwardAfterFirstTrigger = 2,
+            predicate = Collection<Hendelse>::isNotEmpty
+        )
 }
 
 fun conditionallyAdd1MilliSecondToTimestamp(hendelse: OpplysningerOmArbeidssoekerMottatt): OpplysningerOmArbeidssoekerMottatt {
