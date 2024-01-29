@@ -8,7 +8,18 @@ import no.nav.paw.besvarelse.UtdanningSvar
 import java.time.*
 import java.time.temporal.ChronoUnit
 import java.util.*
-
+object Nus {
+    val ingenUtdanning = "0"
+    val barneskole = "1"
+    val ungdomsskole = "2"
+    val videregaendeGrunnutdanning = "3"
+    val videregaendeAvsluttende = "4"
+    val paabyggingTilVideregaende = "5"
+    val univeristetHoeyskoleLavereNivaa = "6"
+    val univeristetHoeyskoleHoyereNivaa = "7"
+    val forskerUtdanning = "8"
+    val ikkeOppgitt = "9"
+}
 
 fun tilSituasjonElement(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent): JobbsituasjonMedDetaljer? =
     with(jobbsituasjonScope(arbeidssokerBesvarelseEvent.besvarelse?.dinSituasjon?.verdi)) {
@@ -37,14 +48,14 @@ fun jaNeiVetIkke(navn: String) =
 
 fun utdanningsnivaa(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
     when (arbeidssokerBesvarelseEvent.besvarelse.utdanning.verdi) {
-        UtdanningSvar.INGEN_UTDANNING -> Utdanningsnivaa.INGEN_UTDANNING
-        UtdanningSvar.GRUNNSKOLE -> Utdanningsnivaa.GRUNNSKOLE
-        UtdanningSvar.VIDEREGAENDE_GRUNNUTDANNING -> Utdanningsnivaa.VIDEREGAENDE_GRUNNUTDANNING
-        UtdanningSvar.VIDEREGAENDE_FAGBREV_SVENNEBREV -> Utdanningsnivaa.VIDEREGAENDE_FAGUTDANNING_SVENNEBREV
-        UtdanningSvar.HOYERE_UTDANNING_1_TIL_4 -> Utdanningsnivaa.HOYERE_UTDANNING_1_TIL_4
-        UtdanningSvar.HOYERE_UTDANNING_5_ELLER_MER -> Utdanningsnivaa.HOYERE_UTDANNING_5_ELLER_MER
-        UtdanningSvar.INGEN_SVAR -> Utdanningsnivaa.UDEFINERT
-        null -> Utdanningsnivaa.UDEFINERT
+        UtdanningSvar.INGEN_UTDANNING -> Nus.ingenUtdanning
+        UtdanningSvar.GRUNNSKOLE -> Nus.barneskole
+        UtdanningSvar.VIDEREGAENDE_GRUNNUTDANNING -> Nus.videregaendeGrunnutdanning
+        UtdanningSvar.VIDEREGAENDE_FAGBREV_SVENNEBREV -> Nus.videregaendeAvsluttende
+        UtdanningSvar.HOYERE_UTDANNING_1_TIL_4 -> Nus.univeristetHoeyskoleLavereNivaa
+        UtdanningSvar.HOYERE_UTDANNING_5_ELLER_MER -> Nus.univeristetHoeyskoleHoyereNivaa
+        UtdanningSvar.INGEN_SVAR -> Nus.ikkeOppgitt
+        null -> Nus.ikkeOppgitt
     }
 
 fun arbeidserfaring(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
@@ -70,7 +81,7 @@ fun situasjonMottat(utfoertAv: Bruker, arbeidssokerBesvarelseEvent: Arbeidssoker
                 aarsak = "overføring"
             ),
             utdanning = Utdanning(
-                utdanningsnivaa = utdanningsnivaa(arbeidssokerBesvarelseEvent),
+                nus = utdanningsnivaa(arbeidssokerBesvarelseEvent),
                 bestaatt = jaNeiVetIkke(arbeidssokerBesvarelseEvent.besvarelse.utdanningBestatt.verdi.name),
                 godkjent = jaNeiVetIkke(arbeidssokerBesvarelseEvent.besvarelse.utdanningGodkjent.verdi.name)
             ),

@@ -13,6 +13,7 @@ import no.nav.paw.besvarelse.*
 import no.nav.paw.besvarelse.Utdanning
 import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.Hendelse
+import no.nav.paw.migrering.app.mapping.Nus
 import no.nav.paw.migrering.app.mapping.toIso8601
 import java.time.Instant
 import java.time.LocalDate
@@ -41,7 +42,7 @@ class AppTest : FreeSpec({
                 arbeidserfaring.harHattArbeid shouldBe JaNeiVetIkke.JA
                 utdanning.bestaatt shouldBe JaNeiVetIkke.NEI
                 utdanning.godkjent shouldBe JaNeiVetIkke.VET_IKKE
-                utdanning.utdanningsnivaa shouldBe Utdanningsnivaa.HOYERE_UTDANNING_1_TIL_4
+                utdanning.nus shouldBe Nus.univeristetHoeyskoleLavereNivaa
                 helse.helsetilstandHindrerArbeid shouldBe JaNeiVetIkke.NEI
                 jobbsituasjon.beskrivelser.size shouldBe 1
                 annet.andreForholdHindrerArbeid shouldBe JaNeiVetIkke.NEI
@@ -183,7 +184,7 @@ val situasjonMotattFraVeilarb = OpplysningerOmArbeidssoekerMottatt(
             aarsak = "overføring"
         ),
         utdanning = no.nav.paw.arbeidssokerregisteret.intern.v1.vo.Utdanning(
-            utdanningsnivaa = Utdanningsnivaa.HOYERE_UTDANNING_1_TIL_4,
+            nus = Nus.univeristetHoeyskoleLavereNivaa,
             bestaatt = JaNeiVetIkke.NEI,
             godkjent = JaNeiVetIkke.VET_IKKE
         ),
