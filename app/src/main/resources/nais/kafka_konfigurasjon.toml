@@ -1,9 +1,9 @@
 [klientKonfigurasjon]
-konsumerGruppeId = "paw.arbsok_migrering_v7"
-eventlogTopic = "paw.arbeidssoker-hendelseslogg-beta-v6"
+konsumerGruppeId = "paw.arbsok_migrering_v8"
+eventlogTopic = "paw.arbeidssoker-hendelseslogg-beta-v7"
 periodeTopic = "paw.arbeidssokerperioder-overforing-beta-v1"
 situasjonTopic = "paw.arbeidssoker-besvarelse-v2"
-opplysningerFraVeilarbTopic = "paw.veilarb-opplysninger-mottatt-v1"
+opplysningerFraVeilarbTopic = "paw.veilarb-opplysninger-mottatt-v2"
 
 [serverKonfigurasjon]
 autentisering = "SSL"
