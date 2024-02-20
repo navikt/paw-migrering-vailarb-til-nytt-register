@@ -3,8 +3,25 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm")
     application
-    id("io.ktor.plugin") version "2.3.5"
+    id("io.ktor.plugin") version "2.3.8"
+    id("com.google.cloud.tools.jib") version "3.4.0"
 }
+
+val jvmVersion = JavaVersion.VERSION_21
+val image: String? by project
+
+val agent by configurations.creating {
+    isTransitive = false
+}
+
+val agentExtension by configurations.creating {
+    isTransitive = false
+}
+
+val agentExtensionJar = "agent-extension.jar"
+val agentJar = "agent.jar"
+val agentFolder = layout.buildDirectory.dir("agent").get().toString()
+val agentExtensionFolder = layout.buildDirectory.dir("agent-extension").get().toString()
 
 val logbackVersion = "1.4.5"
 val logstashVersion = "7.3"
@@ -15,6 +32,8 @@ val exposedVersion = "0.42.1"
 val arbeidssokerregisteretVersion = "24.01.29.125-1"
 
 dependencies {
+    agent("io.opentelemetry.javaagent:opentelemetry-javaagent:${pawObservability.versions.openTelemetryInstrumentation.get()}")
+    agentExtension("no.nav.paw.observability:opentelemetry-anonymisering-${pawObservability.versions.openTelemetryInstrumentation.get()}:24.02.20.10-1")
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-crypt:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
@@ -64,15 +83,9 @@ application {
     mainClass.set("no.nav.paw.migrering.app.AppKt")
 }
 
-ktor {
-    fatJar {
-        archiveFileName.set("fat.jar")
-    }
-}
-
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(jvmVersion.majorVersion)
     }
 }
 
@@ -84,4 +97,46 @@ tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
         freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
     }
+}
+
+tasks.create("addAgent", Copy::class) {
+    from(agent)
+    into(agentFolder)
+    rename { _ -> agentJar}
+}
+
+tasks.create("addAgentExtension", Copy::class) {
+    from(agentExtension)
+    into(agentExtensionFolder)
+    rename { _ -> agentExtensionJar}
+}
+
+tasks.withType(KotlinCompile::class) {
+    dependsOn.add("addAgent")
+    dependsOn.add("addAgentExtension")
+}
+
+jib {
+    from.image = "ghcr.io/navikt/baseimages/temurin:${jvmVersion.majorVersion}"
+    to.image = "${image ?: rootProject.name }:${project.version}"
+    extraDirectories {
+        paths {
+            path {
+                setFrom(agentFolder)
+                into = "/app"
+            }
+            path {
+                setFrom(agentExtensionFolder)
+                into = "/app"
+            }
+        }
+    }
+    container.entrypoint = listOf(
+        "java",
+        "-cp", "@/app/jib-classpath-file",
+        "-javaagent:/app/$agentJar",
+        "-Dotel.javaagent.extensions=/app/$agentExtensionJar",
+        "-Dotel.resource.attributes=service.name=${project.name}",
+        application.mainClass.get()
+    )
 }
