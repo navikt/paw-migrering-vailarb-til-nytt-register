@@ -8,6 +8,7 @@ import no.nav.paw.besvarelse.UtdanningSvar
 import java.time.*
 import java.time.temporal.ChronoUnit
 import java.util.*
+
 object Nus {
     val ingenUtdanning = "0"
     val barneskole = "1"
@@ -37,7 +38,15 @@ fun jobbSituasjonMedDetaljer(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelse
         .mapNotNull { (key, value) -> value?.let { key to it } }.toMap()
 )
 
-fun jaNeiVetIkke(navn: String) =
+fun jaNeiVetIkke(navn: String): JaNeiVetIkke? =
+    when (navn) {
+        "JA" -> JaNeiVetIkke.JA
+        "NEI" -> JaNeiVetIkke.NEI
+        "VET_IKKE" -> JaNeiVetIkke.VET_IKKE
+        else -> null
+    }
+
+fun nonNullableJaNeiVetIkke(navn: String): JaNeiVetIkke =
     when (navn) {
         "JA" -> JaNeiVetIkke.JA
         "NEI" -> JaNeiVetIkke.NEI
@@ -59,14 +68,16 @@ fun utdanningsnivaa(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
     }
 
 fun arbeidserfaring(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
-    Arbeidserfaring(
-        when (arbeidssokerBesvarelseEvent.besvarelse.sisteStilling.verdi) {
-            SisteStillingSvar.HAR_HATT_JOBB -> JaNeiVetIkke.JA
-            SisteStillingSvar.HAR_IKKE_HATT_JOBB -> JaNeiVetIkke.NEI
-            SisteStillingSvar.INGEN_SVAR -> JaNeiVetIkke.VET_IKKE
-            null -> JaNeiVetIkke.VET_IKKE
-        }
-    )
+    when (arbeidssokerBesvarelseEvent.besvarelse.sisteStilling.verdi) {
+        SisteStillingSvar.HAR_HATT_JOBB -> null
+        SisteStillingSvar.HAR_IKKE_HATT_JOBB -> JobbsituasjonMedDetaljer(
+            beskrivelse = JobbsituasjonBeskrivelse.ALDRI_HATT_JOBB,
+            detaljer = emptyMap()
+        )
+
+        SisteStillingSvar.INGEN_SVAR -> null
+        null -> null
+    }
 
 fun situasjonMottat(utfoertAv: Bruker, arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
     OpplysningerOmArbeidssoekerMottatt(
@@ -86,12 +97,12 @@ fun situasjonMottat(utfoertAv: Bruker, arbeidssokerBesvarelseEvent: Arbeidssoker
                 godkjent = jaNeiVetIkke(arbeidssokerBesvarelseEvent.besvarelse.utdanningGodkjent.verdi.name)
             ),
             helse = Helse(
-                jaNeiVetIkke(arbeidssokerBesvarelseEvent.besvarelse.helseHinder.verdi.name)
+                nonNullableJaNeiVetIkke(arbeidssokerBesvarelseEvent.besvarelse.helseHinder.verdi.name)
             ),
-            arbeidserfaring = arbeidserfaring(arbeidssokerBesvarelseEvent),
             jobbsituasjon = Jobbsituasjon(
                 listOfNotNull(
-                    tilSituasjonElement(arbeidssokerBesvarelseEvent)
+                    tilSituasjonElement(arbeidssokerBesvarelseEvent),
+                    arbeidserfaring(arbeidssokerBesvarelseEvent),
                 )
             ),
             annet = Annet(

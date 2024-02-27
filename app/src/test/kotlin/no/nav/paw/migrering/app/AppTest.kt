@@ -39,13 +39,12 @@ class AppTest : FreeSpec({
             hendelse.metadata.utfoertAv.id shouldBe "paw-migrering-veilarb-til-nytt-register"
             hendelse.metadata.utfoertAv.type shouldBe BrukerType.SYSTEM
             with(hendelse.opplysningerOmArbeidssoeker) {
-                arbeidserfaring.harHattArbeid shouldBe JaNeiVetIkke.JA
-                utdanning.bestaatt shouldBe JaNeiVetIkke.NEI
-                utdanning.godkjent shouldBe JaNeiVetIkke.VET_IKKE
-                utdanning.nus shouldBe Nus.univeristetHoeyskoleLavereNivaa
-                helse.helsetilstandHindrerArbeid shouldBe JaNeiVetIkke.NEI
+                utdanning?.bestaatt shouldBe JaNeiVetIkke.NEI
+                utdanning?.godkjent shouldBe JaNeiVetIkke.VET_IKKE
+                utdanning?.nus shouldBe Nus.univeristetHoeyskoleLavereNivaa
+                helse?.helsetilstandHindrerArbeid shouldBe JaNeiVetIkke.NEI
                 jobbsituasjon.beskrivelser.size shouldBe 1
-                annet.andreForholdHindrerArbeid shouldBe JaNeiVetIkke.NEI
+                annet?.andreForholdHindrerArbeid shouldBe JaNeiVetIkke.NEI
                 val beskrivelse = jobbsituasjon.beskrivelser.first()
                 beskrivelse.beskrivelse shouldBe JobbsituasjonBeskrivelse.ER_PERMITTERT
                 beskrivelse.detaljer[PROSENT] shouldBe "75"
@@ -190,9 +189,6 @@ val situasjonMotattFraVeilarb = OpplysningerOmArbeidssoekerMottatt(
         ),
         helse = Helse(
             helsetilstandHindrerArbeid = JaNeiVetIkke.NEI
-        ),
-        arbeidserfaring = Arbeidserfaring(
-            harHattArbeid = JaNeiVetIkke.JA
         ),
         jobbsituasjon = Jobbsituasjon(
             beskrivelser = listOf(

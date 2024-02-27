@@ -13,7 +13,9 @@ import no.nav.paw.migrering.app.konfigurasjon.applikasjonKonfigurasjon
 import no.nav.paw.migrering.app.mapping.conditionallyAddOneMilliSecond
 import no.nav.paw.migrering.app.mapping.situasjonMottat
 import no.nav.paw.migrering.app.mapping.tilPeriode
-import no.nav.paw.migrering.app.serde.hendelseTilBytes
+import no.nav.paw.migrering.app.serde.HendelseDeserializer
+import no.nav.paw.migrering.app.serde.HendelseSerde
+import no.nav.paw.migrering.app.serde.HendelseSerializer
 import no.nav.paw.migrering.app.utils.nLimitFilter
 import org.apache.kafka.clients.producer.KafkaProducer
 
@@ -59,6 +61,7 @@ fun Sequence<List<Hendelse>>.processBatches(
     producer: KafkaProducer<Long, Hendelse>,
     identitetsnummerTilKafkaKey: (String) -> Long,
 ) {
+    val serializer = HendelseSerde().serializer()
     forEach { batch ->
         when {
             consumerStatus.isReady() && batch.isEmpty() -> hentDataFraDbOgSendTilTopic(
@@ -67,7 +70,7 @@ fun Sequence<List<Hendelse>>.processBatches(
                 identitetsnummerTilKafkaKey
             )
 
-            batch.isNotEmpty() -> skrivBatchTilDb(serializer = hendelseTilBytes, batch = batch)
+            batch.isNotEmpty() -> skrivBatchTilDb(serializer = { hendelse -> serializer.serialize(null, hendelse) }, batch = batch)
             else -> logger.info("Venter på at alle topics skal bli klare")
         }
     }

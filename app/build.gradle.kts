@@ -29,7 +29,7 @@ val ktorVersion = pawObservability.versions.ktor
 val navCommonModulesVersion = "2.2023.01.10_13.49-81ddc732df3a"
 val hopliteVersion = "2.8.0.RC3"
 val exposedVersion = "0.42.1"
-val arbeidssokerregisteretVersion = "24.01.29.125-1"
+val arbeidssokerregisteretVersion = "24.02.26.143-1"
 
 dependencies {
     agent("io.opentelemetry.javaagent:opentelemetry-javaagent:${pawObservability.versions.openTelemetryInstrumentation.get()}")
