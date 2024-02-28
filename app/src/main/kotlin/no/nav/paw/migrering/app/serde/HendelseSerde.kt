@@ -1,12 +1,15 @@
 package no.nav.paw.migrering.app.serde
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.paw.arbeidssokerregisteret.intern.v1.*
+import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.JobbsituasjonBeskrivelse
+import no.nav.paw.arbeidssokerregisteret.intern.v1.vo.JobbsituasjonMedDetaljer
 import org.apache.kafka.common.serialization.Deserializer
 import org.apache.kafka.common.serialization.Serde
 import org.apache.kafka.common.serialization.Serializer
@@ -17,8 +20,8 @@ class HendelseSerde : Serde<Hendelse> {
     override fun deserializer() = HendelseDeserializer(objectMapper)
 }
 
-class HendelseSerializer(private val objectMapper: ObjectMapper): Serializer<Hendelse> {
-    constructor(): this(hendelseObjectMapper())
+class HendelseSerializer(private val objectMapper: ObjectMapper) : Serializer<Hendelse> {
+    constructor() : this(hendelseObjectMapper())
 
     override fun serialize(topic: String?, data: Hendelse?): ByteArray {
         return data?.let {
@@ -27,8 +30,8 @@ class HendelseSerializer(private val objectMapper: ObjectMapper): Serializer<Hen
     }
 }
 
-class HendelseDeserializer(private val objectMapper: ObjectMapper): Deserializer<Hendelse> {
-    constructor(): this(hendelseObjectMapper())
+class HendelseDeserializer(private val objectMapper: ObjectMapper) : Deserializer<Hendelse> {
+    constructor() : this(hendelseObjectMapper())
 
     override fun deserialize(topic: String?, data: ByteArray?): Hendelse? {
         if (data == null) return null
@@ -57,7 +60,31 @@ fun deserialize(objectMapper: ObjectMapper, json: ByteArray): Hendelse {
         avsluttetHendelseType -> objectMapper.readValue<Avsluttet>(node.traverse())
         avvistHendelseType -> objectMapper.readValue<Avvist>(node.traverse())
         avvistStoppAvPeriodeHendelseType -> objectMapper.readValue<AvvistStoppAvPeriode>(node.traverse())
-        opplysningerOmArbeidssoekerHendelseType -> objectMapper.readValue<OpplysningerOmArbeidssoekerMottatt>(node.traverse())
+        opplysningerOmArbeidssoekerHendelseType -> gammelTilNyOpplysningsKonverterer(objectMapper, node)
         else -> throw IllegalArgumentException("Ukjent hendelse type: '$hendelseType'")
+    }
+}
+
+fun gammelTilNyOpplysningsKonverterer(objectMapper: ObjectMapper, node: JsonNode): OpplysningerOmArbeidssoekerMottatt {
+    val harHattArbeid = (node.get("opplysningerOmArbeidssoeker")
+        ?.get("arbeidserfaring")
+        ?.get("harHattArbeid")
+        ?.asText()
+        ?.uppercase() ?: "JA") == "JA"
+    val obj = objectMapper.readValue<OpplysningerOmArbeidssoekerMottatt>(node.traverse())
+    return if (harHattArbeid) {
+        obj
+    } else {
+        obj.copy(
+            opplysningerOmArbeidssoeker = obj.opplysningerOmArbeidssoeker.copy(
+                jobbsituasjon = obj.opplysningerOmArbeidssoeker.jobbsituasjon.copy(
+                    beskrivelser = obj.opplysningerOmArbeidssoeker.jobbsituasjon.beskrivelser +
+                    JobbsituasjonMedDetaljer(
+                        beskrivelse = JobbsituasjonBeskrivelse.ALDRI_HATT_JOBB,
+                        detaljer = emptyMap()
+                    )
+                )
+            )
+        )
     }
 }
