@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 fun <K, V> consumerSequence(
     consumerProperties: Map<String, Any?>,
-    pollTimeout: Duration = Duration.ofMillis(250),
+    pollTimeout: Duration = Duration.ofMillis(125),
     commitBeforeHasNext: Boolean = true,
     commitBeforePoll: Boolean = true,
     subscribeTo: List<String>,
@@ -26,7 +26,7 @@ fun <K, V> consumerSequence(
 
 class ConsumerBackedCloseableSequence<K, V>(
     private val consumer: KafkaConsumer<K, V>,
-    private val pollTimeout: Duration = Duration.ofMillis(250),
+    private val pollTimeout: Duration,
     private val commitBeforeHasNext: Boolean = true,
     private val commitBeforePoll: Boolean = true
 ) : CloseableSequence<List<Pair<K, V>>> {
