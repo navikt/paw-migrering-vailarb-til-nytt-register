@@ -8,6 +8,7 @@ import no.nav.paw.arbeidssokerregisteret.intern.v1.OpplysningerOmArbeidssoekerMo
 import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.app.db.HendelserTabell
+import no.nav.paw.migrering.app.db.flywayClean
 import no.nav.paw.migrering.app.db.flywayMigrate
 import no.nav.paw.migrering.app.kafka.StatusConsumerRebalanceListener
 import no.nav.paw.migrering.app.konfigurasjon.*
@@ -32,6 +33,7 @@ fun main() {
         config = applikasjonKonfigurasjon,
         databaseKonfigurasjon = databaseKonfigurasjon
     )
+    flywayClean(dependencies.dataSource)
     flywayMigrate(dependencies.dataSource)
     Database.connect(dependencies.dataSource)
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
