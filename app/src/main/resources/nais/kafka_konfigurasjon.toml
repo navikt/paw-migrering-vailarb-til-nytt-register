@@ -1,5 +1,5 @@
 [klientKonfigurasjon]
-konsumerGruppeId = "paw.arbsok_migrering_v10"
+konsumerGruppeId = "paw.arbsok_migrering_v11"
 eventlogTopic = "paw.arbeidssoker-hendelseslogg-beta-v9"
 periodeTopic = "paw.arbeidssokerperioder-overforing-beta-v1"
 situasjonTopic = "paw.arbeidssoker-besvarelse-v2"
