@@ -18,7 +18,7 @@ class HendelseSerdeTest: FreeSpec({
             beskrivelser.find { it.beskrivelse == JobbsituasjonBeskrivelse.IKKE_VAERT_I_JOBB_SISTE_2_AAR }.shouldNotBeNull()
             beskrivelser.find { it.beskrivelse == JobbsituasjonBeskrivelse.ALDRI_HATT_JOBB }.shouldNotBeNull()
         }
-        "Når personrn har hatt jobb skal ikke 'ALDRI_HATT_JOBB' ligge i jobbsituasjon" {
+        "Når personen har hatt jobb skal ikke 'ALDRI_HATT_JOBB' ligge i jobbsituasjon" {
             val hendelse = HendelseSerde().deserializer().deserialize("", testJson(harHattArbeid = JA))
             hendelse.shouldBeInstanceOf<OpplysningerOmArbeidssoekerMottatt>()
             val beskrivelser = hendelse.opplysningerOmArbeidssoeker.jobbsituasjon.beskrivelser
