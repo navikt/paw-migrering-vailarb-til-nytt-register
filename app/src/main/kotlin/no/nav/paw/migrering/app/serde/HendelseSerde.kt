@@ -65,26 +65,31 @@ fun deserialize(objectMapper: ObjectMapper, json: ByteArray): Hendelse {
     }
 }
 
+const val JA = "JA"
+const val NEI = "NEI"
+const val VET_IKKE = "VET_IKKE"
 fun gammelTilNyOpplysningsKonverterer(objectMapper: ObjectMapper, node: JsonNode): OpplysningerOmArbeidssoekerMottatt {
     val harHattArbeid = (node.get("opplysningerOmArbeidssoeker")
         ?.get("arbeidserfaring")
         ?.get("harHattArbeid")
         ?.asText()
-        ?.uppercase() ?: "JA") == "JA"
+        ?.uppercase() ?: VET_IKKE)
     val obj = objectMapper.readValue<OpplysningerOmArbeidssoekerMottatt>(node.traverse())
-    return if (harHattArbeid) {
-        obj
-    } else {
-        obj.copy(
-            opplysningerOmArbeidssoeker = obj.opplysningerOmArbeidssoeker.copy(
-                jobbsituasjon = obj.opplysningerOmArbeidssoeker.jobbsituasjon.copy(
-                    beskrivelser = obj.opplysningerOmArbeidssoeker.jobbsituasjon.beskrivelser +
-                    JobbsituasjonMedDetaljer(
-                        beskrivelse = JobbsituasjonBeskrivelse.ALDRI_HATT_JOBB,
-                        detaljer = emptyMap()
-                    )
-                )
-            )
-        )
+    return when (harHattArbeid) {
+        JA -> obj
+        NEI -> leggTilAldriHattJobb(obj)
+        else -> obj
     }
 }
+
+private fun leggTilAldriHattJobb(obj: OpplysningerOmArbeidssoekerMottatt) = obj.copy(
+    opplysningerOmArbeidssoeker = obj.opplysningerOmArbeidssoeker.copy(
+        jobbsituasjon = obj.opplysningerOmArbeidssoeker.jobbsituasjon.copy(
+            beskrivelser = obj.opplysningerOmArbeidssoeker.jobbsituasjon.beskrivelser +
+                JobbsituasjonMedDetaljer(
+                    beskrivelse = JobbsituasjonBeskrivelse.ALDRI_HATT_JOBB,
+                    detaljer = emptyMap()
+                )
+        )
+    )
+)
