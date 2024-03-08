@@ -14,17 +14,18 @@ import kotlin.random.Random
 class ArbeidssokerBesvarelseEventMappingKtTest : FreeSpec({
     "Når personen ikke har hatt jobb skal vi legge til 'ALDRI_HATT_JOBB' i hendelsen" {
         val veilarbEvent = event(SisteStillingSvar.HAR_IKKE_HATT_JOBB)
-        val event = situasjonMottat(bruker, veilarbEvent)
+        val event = situasjonMottat(1L, bruker, veilarbEvent)
         val beskrivelser = event.opplysningerOmArbeidssoeker.jobbsituasjon.beskrivelser
         beskrivelser.size shouldBe 2
         beskrivelser.find { it.beskrivelse == JobbsituasjonBeskrivelse.ER_PERMITTERT }
             .shouldNotBeNull()
         beskrivelser.find { it.beskrivelse == JobbsituasjonBeskrivelse.ALDRI_HATT_JOBB }
             .shouldNotBeNull()
+        event.id shouldBe 1L
     }
     "Når personen har hatt jobb skal vi ikke legge til 'ALDRI_HATT_JOBB' i hendelsen" {
         val veilarbEvent = event(SisteStillingSvar.HAR_HATT_JOBB)
-        val event = situasjonMottat(bruker, veilarbEvent)
+        val event = situasjonMottat(1L, bruker, veilarbEvent)
         val beskrivelser = event.opplysningerOmArbeidssoeker.jobbsituasjon.beskrivelser
         beskrivelser.size shouldBe 1
         beskrivelser.find { it.beskrivelse == JobbsituasjonBeskrivelse.ER_PERMITTERT }
@@ -32,7 +33,8 @@ class ArbeidssokerBesvarelseEventMappingKtTest : FreeSpec({
     }
     "Når svaret er 'INGEN_SVAR' skal vi ikke legge til 'ALDRI_HATT_JOBB' i hendelsen" {
         val veilarbEvent = event(SisteStillingSvar.INGEN_SVAR)
-        val event = situasjonMottat(bruker, veilarbEvent)
+        val event = situasjonMottat(9L, bruker, veilarbEvent)
+        event.id shouldBe 9L
         val beskrivelser = event.opplysningerOmArbeidssoeker.jobbsituasjon.beskrivelser
         beskrivelser.size shouldBe 1
         beskrivelser.find { it.beskrivelse == JobbsituasjonBeskrivelse.ER_PERMITTERT }

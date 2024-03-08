@@ -9,7 +9,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 
 data class KafkaKeysResponse(
-    val id: Long
+    val id: Long,
+    val key: Long
 )
 
 data class KafkaKeysRequest(

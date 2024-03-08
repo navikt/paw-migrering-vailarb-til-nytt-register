@@ -3,6 +3,7 @@ package no.nav.paw.migrering.app
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.runBlocking
 import no.nav.paw.arbeidssokerregisteret.GJELDER_FRA_DATO
 import no.nav.paw.arbeidssokerregisteret.PROSENT
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Avsluttet
@@ -13,6 +14,8 @@ import no.nav.paw.besvarelse.*
 import no.nav.paw.besvarelse.Utdanning
 import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.Hendelse
+import no.nav.paw.migrering.app.kafkakeys.KafkaKeysResponse
+import no.nav.paw.migrering.app.kafkakeys.inMemoryKafkaKeysMock
 import no.nav.paw.migrering.app.mapping.Nus
 import no.nav.paw.migrering.app.mapping.toIso8601
 import java.time.Instant
@@ -23,11 +26,15 @@ import java.util.concurrent.TimeUnit
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse as InterntHendelse
 
 class AppTest : FreeSpec({
+    val kafkaKeysMock = inMemoryKafkaKeysMock()
+    val idFunction: (String) -> KafkaKeysResponse = { runBlocking { kafkaKeysMock.getKey(it) } }
+    val situasjonMottatt = situasjonMotattFraVeilarb(Long.MAX_VALUE)
     "Vi sender inn start, besvarelse også stopp før vi validerer resultatet" - {
         val eventLogIterator = prepareBatches(
             periodeHendelseMeldinger = listOf(emptyList(), listOf("1" to arbeidssokerperiodeStartet, "1" to arbeidsokerperiodeStoppet)).asSequence(),
             besvarelseHendelser = listOf(listOf("123z" to besvarelse), emptyList(), emptyList()).asSequence(),
-            opplysningerFraVeilarbHendelser = listOf<List<Pair<String, InterntHendelse>>>(emptyList(), listOf("dsa1" to situasjonMotattFraVeilarb), emptyList()).asSequence()
+            opplysningerFraVeilarbHendelser = listOf<List<Pair<String, InterntHendelse>>>(emptyList(), listOf("dsa1" to situasjonMottatt), emptyList()).asSequence(),
+            idfunksjon = idFunction
         ).iterator()
         "1. batch skal inneholde 1 hendelse basert på innsendt besvarelse" {
             eventLogIterator.hasNext() shouldBe true
@@ -73,8 +80,9 @@ class AppTest : FreeSpec({
             }
             "3. hendelse i batchen skal være opplysninger mottatt fra veilarb" {
                 val hendelse = hendelser[2]
+                val kafkaKeysResponse = idFunction(hendelse.identitetsnummer)
                 hendelse.shouldBeInstanceOf<OpplysningerOmArbeidssoekerMottatt>()
-                hendelse.shouldBe(situasjonMotattFraVeilarb)
+                hendelse.shouldBe(situasjonMottatt.copy(id = kafkaKeysResponse.id))
             }
         }
         "Ingen flere hendelser skal være tilgjengelig" {
@@ -168,8 +176,9 @@ val besvarelse: ArbeidssokerBesvarelseEvent = ArbeidssokerBesvarelseEvent(
     )
 )
 
-val situasjonMotattFraVeilarb = OpplysningerOmArbeidssoekerMottatt(
+fun situasjonMotattFraVeilarb(id: Long) = OpplysningerOmArbeidssoekerMottatt(
     hendelseId = UUID.randomUUID(),
+    id = id,
     identitetsnummer = "12345678901",
     opplysningerOmArbeidssoeker = OpplysningerOmArbeidssoeker(
         id = UUID.randomUUID(),

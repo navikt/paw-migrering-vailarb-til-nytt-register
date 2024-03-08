@@ -3,6 +3,7 @@ package no.nav.paw.migrering.app.serde
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
@@ -74,6 +75,9 @@ fun gammelTilNyOpplysningsKonverterer(objectMapper: ObjectMapper, node: JsonNode
         ?.get("harHattArbeid")
         ?.asText()
         ?.uppercase() ?: VET_IKKE)
+    if (node.get("id") == null) {
+        (node as ObjectNode).put("id", 0L)
+    }
     val obj = objectMapper.readValue<OpplysningerOmArbeidssoekerMottatt>(node.traverse())
     return when (harHattArbeid) {
         JA -> obj

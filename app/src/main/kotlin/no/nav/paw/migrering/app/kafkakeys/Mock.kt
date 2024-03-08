@@ -13,7 +13,9 @@ fun inMemoryKafkaKeysMock(): KafkaKeysClient {
     val map: ConcurrentMap<String, Long> = ConcurrentHashMap()
     return object: KafkaKeysClient {
         override suspend fun getKey(identitetsnummer: String): KafkaKeysResponse {
-            return KafkaKeysResponse(map.computeIfAbsent(identitetsnummer) { sekvens.incrementAndGet() })
+            val id = map.computeIfAbsent(identitetsnummer) { sekvens.incrementAndGet() }
+            val key = id % 2
+            return KafkaKeysResponse(id, key)
         }
     }
 }

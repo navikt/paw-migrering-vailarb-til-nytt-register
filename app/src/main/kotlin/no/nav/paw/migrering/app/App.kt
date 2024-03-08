@@ -10,6 +10,7 @@ import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.app.db.HendelserTabell
 import no.nav.paw.migrering.app.db.flywayMigrate
 import no.nav.paw.migrering.app.kafka.StatusConsumerRebalanceListener
+import no.nav.paw.migrering.app.kafkakeys.KafkaKeysResponse
 import no.nav.paw.migrering.app.konfigurasjon.*
 import no.nav.paw.migrering.app.ktor.initKtor
 import no.nav.paw.migrering.app.serde.ArbeidssoekerEventSerde
@@ -35,7 +36,9 @@ fun main() {
     flywayMigrate(dependencies.dataSource)
     Database.connect(dependencies.dataSource)
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-
+    val idfunksjon: (String) -> KafkaKeysResponse = { identitetsnummer ->
+        runBlocking { dependencies.kafkaKeysClient.getKey(identitetsnummer) }
+    }
     val consumerStatus = StatusConsumerRebalanceListener(
         kafkaKonfigurasjon.klientKonfigurasjon.periodeTopic,
         kafkaKonfigurasjon.klientKonfigurasjon.situasjonTopic
@@ -104,14 +107,14 @@ fun main() {
                     periodeHendelseMeldinger = periodeHendelseMeldinger,
                     besvarelseHendelser = besvarelseHendelser,
                     opplysningerFraVeilarbHendelser = opplysningerFraVeilarb,
-                    numberOfConsecutiveEmptyBatchesToWaitFor = 160 // each empty batch takes 375ms, 3 listeners with 125ms poll timeout
+                    numberOfConsecutiveEmptyBatchesToWaitFor = 160,// each empty batch takes 375ms, 3 listeners with 125ms poll timeout
+                    idfunksjon = idfunksjon
                 ).processBatches(
                     consumerStatus = consumerStatus,
                     eventlogTopic = kafkaKonfigurasjon.klientKonfigurasjon.eventlogTopic,
                     producer = hendelseProducer,
-                    identitetsnummerTilKafkaKey = { identitetsnummer ->
-                        runBlocking { dependencies.kafkaKeysClient.getKey(identitetsnummer).id }
-                    })
+                    identitetsnummerTilKafkaKey = idfunksjon
+                )
             }
         }
     }

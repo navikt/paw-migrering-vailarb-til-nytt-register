@@ -9,6 +9,7 @@ import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.app.db.skrivBatchTilDb
 import no.nav.paw.migrering.app.kafka.StatusConsumerRebalanceListener
+import no.nav.paw.migrering.app.kafkakeys.KafkaKeysResponse
 import no.nav.paw.migrering.app.konfigurasjon.applikasjonKonfigurasjon
 import no.nav.paw.migrering.app.mapping.conditionallyAddOneMilliSecond
 import no.nav.paw.migrering.app.mapping.situasjonMottat
@@ -24,22 +25,25 @@ fun prepareBatches(
     besvarelseHendelser: Sequence<List<Pair<String, ArbeidssokerBesvarelseEvent>>>,
     opplysningerFraVeilarbHendelser: Sequence<List<Pair<String, Hendelse>>>,
     numberOfConsecutiveEmptyBatchesToWaitFor: Long = 3,
-    idfunksjon: (String) -> Long
+    idfunksjon: (String) -> KafkaKeysResponse
 ): Sequence<List<Hendelse>> {
     val utfoertAv = Bruker(
         type = BrukerType.SYSTEM,
         id = applikasjonKonfigurasjon.applicationName
     )
     return periodeHendelseMeldinger
-        .map { batch -> batch.map { (_, periodeMelding) -> tilPeriode(idfunksjon(periodeMelding.foedselsnummer),utfoertAv, periodeMelding) } }
+        .map { batch -> batch.map { (_, periodeMelding) -> tilPeriode(idfunksjon(periodeMelding.foedselsnummer).id,utfoertAv, periodeMelding) } }
         .zip(besvarelseHendelser) { perioder, besvarelser ->
             perioder + besvarelser
                 .filter { it.second.endret }
-                .map { (_, besvarelse) -> situasjonMottat(idfunksjon(besvarelse.foedselsnummer), utfoertAv, besvarelse) }
+                .map { (_, besvarelse) -> situasjonMottat(idfunksjon(besvarelse.foedselsnummer).id, utfoertAv, besvarelse) }
         }
         .zip(opplysningerFraVeilarbHendelser) { perioderOgBesvarelser, opplysningerFraVeilarb ->
             perioderOgBesvarelser + (opplysningerFraVeilarb.map { (_, opplysning) -> opplysning }
                 .filterIsInstance<OpplysningerOmArbeidssoekerMottatt>()
+                .map { it.copy(
+                    id = idfunksjon(it.identitetsnummer).id,
+                )}
                 .map(::conditionallyAdd1MilliSecondToTimestamp))
         }
         .nLimitFilter(
@@ -60,7 +64,7 @@ fun Sequence<List<Hendelse>>.processBatches(
     consumerStatus: StatusConsumerRebalanceListener,
     eventlogTopic: String,
     producer: KafkaProducer<Long, Hendelse>,
-    identitetsnummerTilKafkaKey: (String) -> Long,
+    identitetsnummerTilKafkaKey: (String) -> KafkaKeysResponse,
 ) {
     val serializer = HendelseSerde().serializer()
     forEach { batch ->

@@ -4,13 +4,18 @@ import io.micrometer.prometheus.PrometheusMeterRegistry
 import no.nav.paw.arbeidssokerregisteret.intern.v1.Hendelse
 import no.nav.paw.migrering.app.db.hentBatch
 import no.nav.paw.migrering.app.db.slett
+import no.nav.paw.migrering.app.kafkakeys.KafkaKeysResponse
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.header.internals.RecordHeaders
 import org.jetbrains.exposed.sql.transactions.transaction
 
 context (PrometheusMeterRegistry)
-fun hentDataFraDbOgSendTilTopic(topic: String, producer: KafkaProducer<Long, Hendelse>, identitetsnummerTilKafkaKey: (String) -> Long) {
+fun hentDataFraDbOgSendTilTopic(
+    topic: String,
+    producer: KafkaProducer<Long, Hendelse>,
+    identitetsnummerTilKafkaKey: (String) -> KafkaKeysResponse
+) {
     loggTid(Operations.BATCH_SEND_TO_TOPIC) {
         val antallSlettetFraDb = transaction {
             val batch = hentBatch(2000)
@@ -22,7 +27,7 @@ fun hentDataFraDbOgSendTilTopic(topic: String, producer: KafkaProducer<Long, Hen
                 batch.mapNotNull(Pair<Long, Hendelse?>::second)
                     .map { hendelse ->
                         loggTid(Operations.LOOKUP_IN_KAFKA_KEYS) {
-                            identitetsnummerTilKafkaKey(hendelse.identitetsnummer) to hendelse
+                            identitetsnummerTilKafkaKey(hendelse.identitetsnummer).key to hendelse
                         }
                     }
             }.map { (key, hendelse) ->
