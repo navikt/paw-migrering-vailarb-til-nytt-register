@@ -23,18 +23,19 @@ fun prepareBatches(
     periodeHendelseMeldinger: Sequence<List<Pair<String, ArbeidssokerperiodeHendelseMelding>>>,
     besvarelseHendelser: Sequence<List<Pair<String, ArbeidssokerBesvarelseEvent>>>,
     opplysningerFraVeilarbHendelser: Sequence<List<Pair<String, Hendelse>>>,
-    numberOfConsecutiveEmptyBatchesToWaitFor: Long = 3
+    numberOfConsecutiveEmptyBatchesToWaitFor: Long = 3,
+    idfunksjon: (String) -> Long
 ): Sequence<List<Hendelse>> {
     val utfoertAv = Bruker(
         type = BrukerType.SYSTEM,
         id = applikasjonKonfigurasjon.applicationName
     )
     return periodeHendelseMeldinger
-        .map { batch -> batch.map { (_, periodeMelding) -> tilPeriode(utfoertAv, periodeMelding) } }
+        .map { batch -> batch.map { (_, periodeMelding) -> tilPeriode(idfunksjon(periodeMelding.foedselsnummer),utfoertAv, periodeMelding) } }
         .zip(besvarelseHendelser) { perioder, besvarelser ->
             perioder + besvarelser
                 .filter { it.second.endret }
-                .map { (_, besvarelse) -> situasjonMottat(utfoertAv, besvarelse) }
+                .map { (_, besvarelse) -> situasjonMottat(idfunksjon(besvarelse.foedselsnummer), utfoertAv, besvarelse) }
         }
         .zip(opplysningerFraVeilarbHendelser) { perioderOgBesvarelser, opplysningerFraVeilarb ->
             perioderOgBesvarelser + (opplysningerFraVeilarb.map { (_, opplysning) -> opplysning }

@@ -79,9 +79,10 @@ fun arbeidserfaring(arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
         null -> null
     }
 
-fun situasjonMottat(utfoertAv: Bruker, arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
+fun situasjonMottat(id: Long, utfoertAv: Bruker, arbeidssokerBesvarelseEvent: ArbeidssokerBesvarelseEvent) =
     OpplysningerOmArbeidssoekerMottatt(
         hendelseId = UUID.randomUUID(),
+        id = id,
         identitetsnummer = arbeidssokerBesvarelseEvent.foedselsnummer,
         opplysningerOmArbeidssoeker = OpplysningerOmArbeidssoeker(
             id = UUID.randomUUID(),

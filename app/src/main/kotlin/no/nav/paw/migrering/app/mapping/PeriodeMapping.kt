@@ -9,13 +9,13 @@ import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import java.time.temporal.ChronoUnit
 import java.util.*
 
-fun tilPeriode(bruker: Bruker, periode: ArbeidssokerperiodeHendelseMelding): Hendelse =
+fun tilPeriode(id: Long, bruker: Bruker, periode: ArbeidssokerperiodeHendelseMelding): Hendelse =
     when (periode.hendelse) {
-        no.nav.paw.migrering.Hendelse.STARTET -> periode.toStartEvent(bruker)
-        no.nav.paw.migrering.Hendelse.STOPPET -> periode.toAvsluttetEvent(bruker)
+        no.nav.paw.migrering.Hendelse.STARTET -> periode.toStartEvent(id, bruker)
+        no.nav.paw.migrering.Hendelse.STOPPET -> periode.toAvsluttetEvent(id, bruker)
     }
 
-fun ArbeidssokerperiodeHendelseMelding.toStartEvent(utfoertAv: Bruker): Startet = Startet (
+fun ArbeidssokerperiodeHendelseMelding.toStartEvent(id: Long, utfoertAv: Bruker): Startet = Startet (
     identitetsnummer = foedselsnummer,
     metadata = Metadata(
         tidspunkt = conditionallySubtractMilliSecond(tidspunkt.truncatedTo(ChronoUnit.MILLIS)),
@@ -23,10 +23,11 @@ fun ArbeidssokerperiodeHendelseMelding.toStartEvent(utfoertAv: Bruker): Startet 
         kilde = "veilarbregistrering",
         aarsak = "overføring"
     ),
-    hendelseId = UUID.randomUUID()
+    hendelseId = UUID.randomUUID(),
+    id = id
 )
 
-fun ArbeidssokerperiodeHendelseMelding.toAvsluttetEvent(utfoertAv: Bruker): Avsluttet = Avsluttet(
+fun ArbeidssokerperiodeHendelseMelding.toAvsluttetEvent(id: Long, utfoertAv: Bruker): Avsluttet = Avsluttet(
     identitetsnummer = foedselsnummer,
     metadata = Metadata(
         tidspunkt = tidspunkt.truncatedTo(ChronoUnit.MILLIS),
@@ -34,5 +35,6 @@ fun ArbeidssokerperiodeHendelseMelding.toAvsluttetEvent(utfoertAv: Bruker): Avsl
         kilde = "veilarbregistrering",
         aarsak = "overføring"
     ),
-    hendelseId = UUID.randomUUID()
+    hendelseId = UUID.randomUUID(),
+    id = id
 )
