@@ -1,5 +1,5 @@
 [klientKonfigurasjon]
-gruppeId = "migrering_v2"
+konsumerGruppeId = "migrering_v2"
 eventlogTopic = "arbeidssoker-hendelseslogg-beta-v2"
 periodeTopic = "arbeidssokerperioder-overforing-beta-v1"
 situasjonTopic = "arbeidssoker-besvarelse-v2"
