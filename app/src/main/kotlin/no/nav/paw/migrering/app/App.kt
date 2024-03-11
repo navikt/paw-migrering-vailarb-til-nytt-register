@@ -9,10 +9,15 @@ import no.nav.paw.besvarelse.ArbeidssokerBesvarelseEvent
 import no.nav.paw.migrering.ArbeidssokerperiodeHendelseMelding
 import no.nav.paw.migrering.app.db.HendelserTabell
 import no.nav.paw.migrering.app.db.flywayMigrate
-import no.nav.paw.migrering.app.db.updateCurrentGroupId
 import no.nav.paw.migrering.app.kafka.StatusConsumerRebalanceListener
 import no.nav.paw.migrering.app.kafkakeys.KafkaKeysResponse
-import no.nav.paw.migrering.app.konfigurasjon.*
+import no.nav.paw.migrering.app.konfigurasjon.applikasjonKonfigurasjon
+import no.nav.paw.migrering.app.konfigurasjon.databaseKonfigurasjon
+import no.nav.paw.migrering.app.konfigurasjon.kafkaKonfigurasjon
+import no.nav.paw.migrering.app.konfigurasjon.medKeySerde
+import no.nav.paw.migrering.app.konfigurasjon.medValueSerde
+import no.nav.paw.migrering.app.konfigurasjon.properties
+import no.nav.paw.migrering.app.konfigurasjon.propertiesMedAvroSchemaReg
 import no.nav.paw.migrering.app.ktor.initKtor
 import no.nav.paw.migrering.app.serde.ArbeidssoekerEventSerde
 import no.nav.paw.migrering.app.serde.HendelseSerde
@@ -20,7 +25,8 @@ import no.nav.paw.migrering.app.utils.consumerSequence
 import org.apache.kafka.common.serialization.Serdes
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Op
-import org.jetbrains.exposed.sql.deleteAll
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.neq
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
@@ -38,12 +44,11 @@ fun main() {
     flywayMigrate(dependencies.dataSource)
     Database.connect(dependencies.dataSource)
     transaction {
-        val groupIdChanged = updateCurrentGroupId(kafkaKonfigurasjon.klientKonfigurasjon.konsumerGruppeId)
-        if (groupIdChanged) {
-            logger.warn("Kafka groupId er endret, sletter all data for å unngå duplikater")
-            HendelserTabell.deleteAll()
-        } else {
-            logger.info("Kafka groupId er uendret")
+        val konsumerGruppeId = kafkaKonfigurasjon.klientKonfigurasjon.konsumerGruppeId
+        HendelserTabell.deleteWhere { groupId neq konsumerGruppeId }.also {
+            if (it > 0) {
+                logger.warn("Kafka konsumerGruppeId er endret, sletter $it rader med gammel konsumerGruppeId")
+            }
         }
     }
     val prometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
